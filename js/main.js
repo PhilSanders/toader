@@ -20,7 +20,7 @@ var bullets;
 var bulletTime = 0;
 var explosion;
 var explosions;
-var debug = false;
+var debug = true;
 
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
@@ -103,11 +103,11 @@ function update() {
 
     if (cursors.left.isDown){
     	player.body.moveLeft(100);
-		player.body.rotation = -1.61;
+		player.body.rotation = -1.59;
     }
     else if (cursors.right.isDown){
     	player.body.moveRight(100);
-		player.body.rotation = 1.61;
+		player.body.rotation = 1.59;
     }
 
     if (cursors.up.isDown){
@@ -196,11 +196,11 @@ function fireBullet () {
 				bullet.body.rotation = player.body.rotation;
 				bullet.body.moveDown(400);
 			}
-			if(player.body.rotation == -1.61){
+			if(player.body.rotation == -1.59){
 				bullet.body.rotation = player.body.rotation;
 				bullet.body.moveLeft(400);
 			}
-			if(player.body.rotation == 1.61){
+			if(player.body.rotation == 1.59){
 				bullet.body.rotation = player.body.rotation;
 				bullet.body.moveRight(400);
 			}
