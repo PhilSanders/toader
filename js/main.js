@@ -13,11 +13,13 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 });
 
 //  Set globals
-//var player;
-//var enemy;
-//var cursors;
-//var bullets;
+var player;
+var enemy;
+var cursors;
+var bullets;
 var bulletTime = 0;
+var explosion;
+var explosions;
 var debug = false;
 
 function preload() {
@@ -51,10 +53,10 @@ function create(){
 	game.add.image(0, 0, 'map');
 
 	//  Add player
-	var player = createPlayer(game,playerCG,enemyCG);
+	var player = createPlayer(playerCG,enemyCG);
 
 	//  Add enemy
-	var enemies = createEnemy(game,enemyCG,weaponCG);
+	var enemies = createEnemy(enemyCG,weaponCG);
 
 	//  Spawn enemies
 	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
@@ -83,17 +85,11 @@ function create(){
 	//  An explosion pool
 	explosions = game.add.group();
 	explosions.createMultiple(30, 'explosion');
-	/*
-	for (var i = 0; i < 30; i++){
-        //  They are evenly spaced out on the X coordinate, with a random Y coordinate
-        var explosion = explosions.create(0,0, 'explosion');
-		explosion.name = 'explosion' + i;
-    }
-	var frameNames = Phaser.Animation.generateFrameNames('explosion', 0, 16, '', 0);
-	explosions.callAll('animations.add', 'animations', 'explosion', frameNames, 30, true, false);
-	*/
-	explosions.setAll('anchor.x', 0.5);
-	explosions.setAll('anchor.y', 0.5);
+	explosions.forEach(function(e){
+		e.anchor.x = 0.2;
+		e.anchor.y = 0.5;
+		e.animations.add('explosion');
+	});
 
 	//  Setup input
     cursors = game.input.keyboard.createCursorKeys();
@@ -133,7 +129,7 @@ function render() {
 	if (debug) game.debug.spriteInfo(player, 32, 500);
 }
 
-function createPlayer(game,playerCG,enemyCG){
+function createPlayer(playerCG,enemyCG){
 	player = game.add.sprite(400, 300, 'player');
 	//  Enable if for physics. This creates a default rectangular body.
 	game.physics.p2.enable(player, debug);
@@ -152,8 +148,8 @@ function createPlayer(game,playerCG,enemyCG){
 	});
 }
 
-function createEnemy(game,enemyCG,weaponCG){
-	var enemies = game.add.group();
+function createEnemy(enemyCG,weaponCG){
+	enemies = game.add.group();
 	enemies.createMultiple(30,'enemy');
     enemies.enableBody = true;
     enemies.physicsBodyType = Phaser.Physics.P2JS;
@@ -166,7 +162,6 @@ function createEnemy(game,enemyCG,weaponCG){
 		e.body.setCollisionGroup(enemyCG);
 		e.body.fixedRotation = false;
 		e.body.kinematic = true;
-		e.animations.add('explosion');
 		e.body.collides(weaponCG, function(){
 			var explode = explosions.getFirstExists(false);
 			explode.reset(e.body.x, e.body.y);
