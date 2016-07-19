@@ -22,7 +22,7 @@ var explosion;
 var explosions;
 var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 ) ;
 var gameover = false;
-var debug = false;
+var debug = true;
 
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
@@ -77,7 +77,6 @@ function create(){
 
 	//  Bullets group
 	weapon = game.add.group();
-	//game.physics.p2.enable(bullets, true);
 	weapon.createMultiple(30,'bullet');
 	weapon.enableBody = true;
 	weapon.physicsBodyType = Phaser.Physics.P2JS;
@@ -110,24 +109,24 @@ function create(){
 }
 
 function update() {
-
+	var speed = 60;
 	player.body.setZeroVelocity();
 
     if (cursors.left.isDown){
-    	player.body.moveLeft(100);
+    	player.body.moveLeft(speed);
 		player.body.rotation = -1.59;
     }
     else if (cursors.right.isDown){
-    	player.body.moveRight(100);
+    	player.body.moveRight(speed);
 		player.body.rotation = 1.59;
     }
 
     if (cursors.up.isDown){
-    	player.body.moveUp(100);
+    	player.body.moveUp(speed);
 		player.body.rotation = 0;
     }
     else if (cursors.down.isDown){
-    	player.body.moveDown(100);
+    	player.body.moveDown(speed);
 		player.body.rotation = -3.12;
     }
 	//  Firing?
