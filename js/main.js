@@ -20,7 +20,8 @@ var bullets;
 var bulletTime = 0;
 var explosion;
 var explosions;
-var debug = true;
+var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 ) ;
+var debug = false;
 
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
@@ -59,8 +60,18 @@ function create(){
 	var enemies = createEnemy(enemyCG,weaponCG);
 
 	//  Spawn enemies
+
 	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
-		spawnEnemy(enemies,enemyCG,playerCG,weaponCG);
+		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,820,260,'left');
+	});
+	game.time.events.repeat(Phaser.Timer.SECOND * 4.2, 20, function(){
+		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,0,340,'right');
+	});
+	game.time.events.repeat(Phaser.Timer.SECOND * 5, 20, function(){
+		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,440,600,'up');
+	});
+	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
+		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,360,0,'down');
 	});
 
 	//  Bullets group
@@ -86,7 +97,7 @@ function create(){
 	explosions = game.add.group();
 	explosions.createMultiple(30, 'explosion');
 	explosions.forEach(function(e){
-		e.anchor.x = 0.2;
+		e.anchor.x = 0.5;
 		e.anchor.y = 0.5;
 		e.animations.add('explosion');
 	});
@@ -122,11 +133,15 @@ function update() {
 	if (fireButton.isDown){
 		fireBullet();
 	}
+
+	//  Check if player is inside playBounds
+	//stayInBoundingBox(player, playerBounds);
 }
 
 function render() {
 	//game.debug.body('player');
 	if (debug) game.debug.spriteInfo(player, 32, 500);
+	game.debug.geom( playerBounds, 'rgba(255,0,255,0.2)' ) ;
 }
 
 function createPlayer(playerCG,enemyCG){
@@ -173,11 +188,27 @@ function createEnemy(enemyCG,weaponCG){
 	return enemies;
 }
 
-function spawnEnemy(enemies,enemyCG,playerCG,weaponCG){
+function spawnEnemy(enemies,enemyCG,playerCG,weaponCG,xPos,yPos,direction){
 	var enemy = enemies.getFirstExists(false);
-		enemy.reset(820, 260);
-		enemy.body.collides([enemyCG,playerCG,weaponCG]);
+	enemy.reset(xPos, yPos);
+	enemy.body.collides([enemyCG,playerCG,weaponCG]);
+
+	if (direction == 'left'){
+		enemy.body.rotation = 0;
 		enemy.body.moveLeft(160);
+	}
+	if (direction == 'right'){
+		enemy.body.rotation = -3.12;
+		enemy.body.moveRight(160);
+	}
+	if (direction == 'up'){
+		enemy.body.rotation = 1.59;
+		enemy.body.moveUp(160);
+	}
+	if (direction == 'down'){
+		enemy.body.rotation = -1.59;
+		enemy.body.moveDown(160);
+	}
 }
 
 function fireBullet () {
@@ -206,5 +237,29 @@ function fireBullet () {
 			}
 			bulletTime = game.time.now + 400;
 		}
+	}
+}
+
+function stayInBoundingBox(player, playerBounds) {
+	//  Rectangle collison
+	var p = playerBounds;
+	var tpos = player.body.position;
+	var h = player.body.halfHeight;
+	var w = player.body.halfWidth;
+	var tx1 = tpos.x - w;
+	var ty1 = tpos.y - h;
+	var tx2 = tpos.x + w;
+	var ty2 = tpos.y + h;
+	if (tx1 + w < p.x) {
+		tpos.x = p.x + w;
+	}
+	else if (tx2 + w > p.x + p.width) {
+		tpos.x = p.x + p.width - w*2;
+	}
+	else if (ty1 + h < p.y) {
+		tpos.y = p.y + h;
+	}
+	else if (ty2 + h > p.y + p.height) {
+		tpos.y = p.y + p.height - h*2;
 	}
 }
