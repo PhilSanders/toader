@@ -7,17 +7,18 @@
 
 var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 	preload: preload,
-	create: create,
-	update: update,
-	render: render
+	create:  create,
+	update:  update,
+	render:  render
 });
 
-// Set globals
+//  Set globals
 //var player;
 //var enemy;
 //var cursors;
 //var bullets;
 var bulletTime = 0;
+var debug = false;
 
 function preload() {
 	game.load.image('map', 'assets/img/map1.01.png');
@@ -32,101 +33,45 @@ function create(){
 	game.scale.pageAlignHorizontally = true;
 	game.scale.pageAlignVeritcally = true;
 
-	// Enable P2JS Physics
+	//  Enable P2JS Physics
 	game.physics.startSystem(Phaser.Physics.P2JS);
 	//  Turn on impact events for the world, without this we get no collision callbacks
     game.physics.p2.setImpactEvents(true);
 	//  Make things a bit more bouncey
-    //game.physics.p2.defaultRestitution = 0.8;
+    game.physics.p2.defaultRestitution = 0.8;
 
-	//  Create our collision groups. One for the player, one for the pandas
+	//  collision
     var playerCollisionGroup = game.physics.p2.createCollisionGroup();
     var weaponCollisionGroup = game.physics.p2.createCollisionGroup();
 	var enemyCollisionGroup = game.physics.p2.createCollisionGroup();
-
-	//  This part is vital if you want the objects with their own collision groups to still collide with the world bounds
-    //  (which we do) - what this does is adjust the bounds to use its own collision group.
     //game.physics.p2.updateBoundsCollisionGroup();
 
-
-	// Add the map background to the scene
+	//  Add the map background to the scene
 	game.add.image(0, 0, 'map');
 
-
 	//  Add player
-	player = game.add.sprite(400, 300, 'player');
-	//  Enable if for physics. This creates a default rectangular body.
-	game.physics.p2.enable(player, false);
-	//  Modify a few body properties
-	player.body.setZeroDamping();
-	player.body.fixedRotation = false;
-	//player.body.kinematic = true;
+	var player = createPlayer(game,playerCollisionGroup,enemyCollisionGroup);
 
-	//  Set the ships collision group
-    player.body.setCollisionGroup(playerCollisionGroup);
-	//  The ship will collide with the pandas, and when it strikes one the hitPanda callback will fire, causing it to alpha out a bit
-    //  When pandas collide with each other, nothing happens to them.
-    player.body.collides(enemyCollisionGroup, function(){
-		console.log('Kill Player');
-		player.kill();
-	});
+	//  Add enemy
+	var enemies = createEnemy(game,enemyCollisionGroup,weaponCollisionGroup);
 
-
-	// Add enemy
-	enemies = game.add.group();
-	enemies.createMultiple(30,'enemy');
-    enemies.enableBody = true;
-    enemies.physicsBodyType = Phaser.Physics.P2JS;
-	game.physics.p2.enable(enemies, false);
-	enemies.setAll('anchor.x', 0.5);
-	enemies.setAll('anchor.y', 0.5);
-    enemies.setAll('outOfBoundsKill', true);
-    enemies.setAll('checkWorldBounds', true);
-	enemies.forEach(function(e){
-		e.body.setCollisionGroup(enemyCollisionGroup);
-		e.body.fixedRotation = false;
-		e.body.kinematic = true;
-		e.animations.add('explosion');
-		e.body.collides(weaponCollisionGroup, function(){
-			var explode = explosions.getFirstExists(false);
-			explode.reset(e.body.x, e.body.y);
-			explode.play('explosion', 30, false, true);
-			e.kill();
-			console.log('Kill Enemy');
-		});
-	});
-
-	// Spawn enemies
+	//  Spawn enemies
 	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
-		enemy = enemies.getFirstExists(false);
-		enemy.reset(820, 260);
-		enemy.body.collides([enemyCollisionGroup, playerCollisionGroup, weaponCollisionGroup]);
-		enemy.body.moveLeft(160);
+		spawnEnemy(enemies, enemyCollisionGroup, playerCollisionGroup, weaponCollisionGroup);
 	});
 
-	/*
-		game.time.events.repeat(Phaser.Timer.SECOND * 2, 10, function(){
-			enemy = enemies.getFirstExists(false);
-			enemy.body.rotation = -1.6;
-			enemy.reset(350, 0);
-			enemy.body.collides([enemyCollisionGroup, playerCollisionGroup, weaponCollisionGroup]);
-			enemy.body.moveDown(160);
-		});
-	*/
-
-
-	// Bullets group
-	bullets = game.add.group();
+	//  Bullets group
+	weapon = game.add.group();
 	//game.physics.p2.enable(bullets, true);
-	bullets.createMultiple(30,'bullet');
-	bullets.enableBody = true;
-	bullets.physicsBodyType = Phaser.Physics.P2JS;
-	game.physics.p2.enable(bullets, false);
-	bullets.setAll('anchor.x', 0.5);
-	bullets.setAll('anchor.y', 0.5);
-    bullets.setAll('outOfBoundsKill', true);
-    bullets.setAll('checkWorldBounds', true);
-	bullets.forEach(function(e){
+	weapon.createMultiple(30,'bullet');
+	weapon.enableBody = true;
+	weapon.physicsBodyType = Phaser.Physics.P2JS;
+	game.physics.p2.enable(weapon, debug);
+	weapon.setAll('anchor.x', 0.5);
+	weapon.setAll('anchor.y', 0.5);
+    weapon.setAll('outOfBoundsKill', true);
+    weapon.setAll('checkWorldBounds', true);
+	weapon.forEach(function(e){
 		e.body.setCollisionGroup(weaponCollisionGroup);
 		e.body.fixedRotation = false;
 		e.body.collides(enemyCollisionGroup, function(){
@@ -134,13 +79,24 @@ function create(){
 		});
 	});
 
+
 	//  An explosion pool
 	explosions = game.add.group();
-	explosions.createMultiple(30  , 'explosion');
+	explosions.createMultiple(30, 'explosion');
+	/*
+	for (var i = 0; i < 30; i++){
+        //  They are evenly spaced out on the X coordinate, with a random Y coordinate
+        var explosion = explosions.create(0,0, 'explosion');
+		explosion.name = 'explosion' + i;
+    }
+	var frameNames = Phaser.Animation.generateFrameNames('explosion', 0, 16, '', 0);
+	explosions.callAll('animations.add', 'animations', 'explosion', frameNames, 30, true, false);
+	*/
 	explosions.setAll('anchor.x', 0.5);
 	explosions.setAll('anchor.y', 0.5);
 
-	// Setup input
+
+	//  Setup input
     cursors = game.input.keyboard.createCursorKeys();
 	fireButton = this.input.keyboard.addKey(Phaser.KeyCode.SPACEBAR);
 
@@ -175,15 +131,65 @@ function update() {
 
 function render() {
 	//game.debug.body('player');
-	game.debug.spriteInfo(player, 32, 500);
+	if (debug) game.debug.spriteInfo(player, 32, 500);
+}
+
+function createPlayer(game,playerCollisionGroup,enemyCollisionGroup){
+	player = game.add.sprite(400, 300, 'player');
+	//  Enable if for physics. This creates a default rectangular body.
+	game.physics.p2.enable(player, debug);
+	//  Modify a few body properties
+	player.body.setZeroDamping();
+	player.body.fixedRotation = false;
+	//player.body.kinematic = true;
+
+	//  Set the ships collision group
+    player.body.setCollisionGroup(playerCollisionGroup);
+	//  The ship will collide with the pandas, and when it strikes one the hitPanda callback will fire, causing it to alpha out a bit
+    //  When pandas collide with each other, nothing happens to them.
+    player.body.collides(enemyCollisionGroup, function(){
+		console.log('Kill Player');
+		player.kill();
+	});
+}
+
+function createEnemy(game,enemyCollisionGroup,weaponCollisionGroup){
+	var enemies = game.add.group();
+	enemies.createMultiple(30,'enemy');
+    enemies.enableBody = true;
+    enemies.physicsBodyType = Phaser.Physics.P2JS;
+	game.physics.p2.enable(enemies, debug);
+	enemies.setAll('anchor.x', 0.5);
+	enemies.setAll('anchor.y', 0.5);
+    enemies.setAll('outOfBoundsKill', true);
+    enemies.setAll('checkWorldBounds', true);
+	enemies.forEach(function(e){
+		e.body.setCollisionGroup(enemyCollisionGroup);
+		e.body.fixedRotation = false;
+		e.body.kinematic = true;
+		e.animations.add('explosion');
+		e.body.collides(weaponCollisionGroup, function(){
+			var explode = explosions.getFirstExists(false);
+			explode.reset(e.body.x, e.body.y);
+			explode.play('explosion', 30, false, true);
+			e.kill();
+			console.log('Kill Enemy');
+		});
+	});
+	return enemies;
+}
+
+function spawnEnemy(enemies, enemyCollisionGroup, playerCollisionGroup, weaponCollisionGroup){
+	var enemy = enemies.getFirstExists(false);
+		enemy.reset(820, 260);
+		enemy.body.collides([enemyCollisionGroup, playerCollisionGroup, weaponCollisionGroup]);
+		enemy.body.moveLeft(160);
 }
 
 function fireBullet () {
-
     if (game.time.now > bulletTime){
 		//  Grab the first bullet we can from the pool
-		bullet = bullets.getFirstExists(false);
-
+		bullet = weapon.getFirstExists(false);
 		if (bullet){
 			//  And fire it
 			bullet.reset(player.x, player.y);
