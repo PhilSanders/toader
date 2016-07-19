@@ -40,24 +40,25 @@ function create(){
 	//  Make things a bit more bouncey
     game.physics.p2.defaultRestitution = 0.8;
 
-	//  collision
-    var playerCollisionGroup = game.physics.p2.createCollisionGroup();
-    var weaponCollisionGroup = game.physics.p2.createCollisionGroup();
-	var enemyCollisionGroup = game.physics.p2.createCollisionGroup();
+	//  Collision Groups
+    var playerCG = game.physics.p2.createCollisionGroup();
+    var weaponCG = game.physics.p2.createCollisionGroup();
+	var enemyCG = game.physics.p2.createCollisionGroup();
+	//  Collide with bounds
     //game.physics.p2.updateBoundsCollisionGroup();
 
 	//  Add the map background to the scene
 	game.add.image(0, 0, 'map');
 
 	//  Add player
-	var player = createPlayer(game,playerCollisionGroup,enemyCollisionGroup);
+	var player = createPlayer(game,playerCG,enemyCG);
 
 	//  Add enemy
-	var enemies = createEnemy(game,enemyCollisionGroup,weaponCollisionGroup);
+	var enemies = createEnemy(game,enemyCG,weaponCG);
 
 	//  Spawn enemies
 	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
-		spawnEnemy(enemies,enemyCollisionGroup,playerCollisionGroup,weaponCollisionGroup);
+		spawnEnemy(enemies,enemyCG,playerCG,weaponCG);
 	});
 
 	//  Bullets group
@@ -72,9 +73,9 @@ function create(){
     weapon.setAll('outOfBoundsKill', true);
     weapon.setAll('checkWorldBounds', true);
 	weapon.forEach(function(e){
-		e.body.setCollisionGroup(weaponCollisionGroup);
+		e.body.setCollisionGroup(weaponCG);
 		e.body.fixedRotation = false;
-		e.body.collides(enemyCollisionGroup, function(){
+		e.body.collides(enemyCG, function(){
 			e.kill();
 		});
 	});
@@ -132,7 +133,7 @@ function render() {
 	if (debug) game.debug.spriteInfo(player, 32, 500);
 }
 
-function createPlayer(game,playerCollisionGroup,enemyCollisionGroup){
+function createPlayer(game,playerCG,enemyCG){
 	player = game.add.sprite(400, 300, 'player');
 	//  Enable if for physics. This creates a default rectangular body.
 	game.physics.p2.enable(player, debug);
@@ -142,16 +143,16 @@ function createPlayer(game,playerCollisionGroup,enemyCollisionGroup){
 	//player.body.kinematic = true;
 
 	//  Set the ships collision group
-    player.body.setCollisionGroup(playerCollisionGroup);
+    player.body.setCollisionGroup(playerCG);
 	//  The ship will collide with the pandas, and when it strikes one the hitPanda callback will fire, causing it to alpha out a bit
     //  When pandas collide with each other, nothing happens to them.
-    player.body.collides(enemyCollisionGroup, function(){
+    player.body.collides(enemyCG, function(){
 		console.log('Kill Player');
 		player.kill();
 	});
 }
 
-function createEnemy(game,enemyCollisionGroup,weaponCollisionGroup){
+function createEnemy(game,enemyCG,weaponCG){
 	var enemies = game.add.group();
 	enemies.createMultiple(30,'enemy');
     enemies.enableBody = true;
@@ -162,11 +163,11 @@ function createEnemy(game,enemyCollisionGroup,weaponCollisionGroup){
     enemies.setAll('outOfBoundsKill', true);
     enemies.setAll('checkWorldBounds', true);
 	enemies.forEach(function(e){
-		e.body.setCollisionGroup(enemyCollisionGroup);
+		e.body.setCollisionGroup(enemyCG);
 		e.body.fixedRotation = false;
 		e.body.kinematic = true;
 		e.animations.add('explosion');
-		e.body.collides(weaponCollisionGroup, function(){
+		e.body.collides(weaponCG, function(){
 			var explode = explosions.getFirstExists(false);
 			explode.reset(e.body.x, e.body.y);
 			explode.play('explosion', 30, false, true);
@@ -177,10 +178,10 @@ function createEnemy(game,enemyCollisionGroup,weaponCollisionGroup){
 	return enemies;
 }
 
-function spawnEnemy(enemies,enemyCollisionGroup,playerCollisionGroup,weaponCollisionGroup){
+function spawnEnemy(enemies,enemyCG,playerCG,weaponCG){
 	var enemy = enemies.getFirstExists(false);
 		enemy.reset(820, 260);
-		enemy.body.collides([enemyCollisionGroup,playerCollisionGroup,weaponCollisionGroup]);
+		enemy.body.collides([enemyCG,playerCG,weaponCG]);
 		enemy.body.moveLeft(160);
 }
 
