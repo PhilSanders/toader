@@ -176,7 +176,7 @@ function createEnemy(enemyCG,weaponCG){
 	enemies.forEach(function(e){
 		e.body.setCollisionGroup(enemyCG);
 		e.body.fixedRotation = false;
-		e.body.kinematic = true;
+		e.body.kinematic = false;
 		e.body.collides(weaponCG, function(){
 			var explode = explosions.getFirstExists(false);
 			explode.reset(e.body.x, e.body.y);
