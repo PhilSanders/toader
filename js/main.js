@@ -27,10 +27,9 @@ function preload() {
 }
 
 function create(){
-
+	//  Center game
 	game.scale.pageAlignHorizontally = true;
 	game.scale.pageAlignVeritcally = true;
-
 	//  Enable P2JS Physics
 	game.physics.startSystem(Phaser.Physics.P2JS);
 	//  Turn on impact events for the world, without this we get no collision callbacks
@@ -42,6 +41,7 @@ function create(){
     var playerCG = game.physics.p2.createCollisionGroup();
     var weaponCG = game.physics.p2.createCollisionGroup();
 	var enemyCG = game.physics.p2.createCollisionGroup();
+
 	//  Collide with bounds
     //game.physics.p2.updateBoundsCollisionGroup();
 
@@ -86,7 +86,7 @@ function create(){
 		});
 	});
 
-	//  An explosion pool
+	//  Explosion group
 	explosions = game.add.group();
 	explosions.createMultiple(30, 'explosion');
 	explosions.forEach(function(e){
