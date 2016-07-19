@@ -13,16 +13,10 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 });
 
 //  Set globals
-var player;
-var enemy;
-var cursors;
-var bullets;
 var bulletTime = 0;
-var explosion;
-var explosions;
 var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 ) ;
 var gameover = false;
-var debug = true;
+var debug = false;
 
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
@@ -61,7 +55,6 @@ function create(){
 	var enemies = createEnemy(enemyCG,weaponCG);
 
 	//  Spawn enemies
-
 	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
 		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,820,260,'left');
 	});
@@ -75,7 +68,7 @@ function create(){
 		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,360,0,'down');
 	});
 
-	//  Bullets group
+	//  Weapon group
 	weapon = game.add.group();
 	weapon.createMultiple(30,'bullet');
 	weapon.enableBody = true;
