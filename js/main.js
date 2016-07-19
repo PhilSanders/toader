@@ -21,6 +21,7 @@ var bulletTime = 0;
 var explosion;
 var explosions;
 var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 ) ;
+var gameover = false;
 var debug = false;
 
 function preload() {
@@ -141,7 +142,7 @@ function update() {
 function render() {
 	//game.debug.body('player');
 	if (debug) game.debug.spriteInfo(player, 32, 500);
-	game.debug.geom( playerBounds, 'rgba(255,0,255,0.2)' ) ;
+	//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)') ;
 }
 
 function createPlayer(playerCG,enemyCG){
@@ -158,8 +159,12 @@ function createPlayer(playerCG,enemyCG){
 	//  The ship will collide with the pandas, and when it strikes one the hitPanda callback will fire, causing it to alpha out a bit
     //  When pandas collide with each other, nothing happens to them.
     player.body.collides(enemyCG, function(){
-		console.log('Kill Player');
 		player.kill();
+		gameover = true;
+		var gameOverText = game.add.text(400, 300, 'GAME OVER', { font: '48px Arial', fill: '#FFF' });
+		gameOverText.anchor.x = 0.5;
+		gameOverText.anchor.y = 0.5;
+		console.log('Kill Player');
 	});
 }
 
@@ -176,7 +181,7 @@ function createEnemy(enemyCG,weaponCG){
 	enemies.forEach(function(e){
 		e.body.setCollisionGroup(enemyCG);
 		e.body.fixedRotation = false;
-		e.body.kinematic = false;
+		e.body.kinematic = true;
 		e.body.collides(weaponCG, function(){
 			var explode = explosions.getFirstExists(false);
 			explode.reset(e.body.x, e.body.y);
@@ -189,30 +194,31 @@ function createEnemy(enemyCG,weaponCG){
 }
 
 function spawnEnemy(enemies,enemyCG,playerCG,weaponCG,xPos,yPos,direction){
-	var enemy = enemies.getFirstExists(false);
+	var enemy = enemies.getFirstExists(false),
+		speed = 200;
 	enemy.reset(xPos, yPos);
 	enemy.body.collides([enemyCG,playerCG,weaponCG]);
 
 	if (direction == 'left'){
 		enemy.body.rotation = 0;
-		enemy.body.moveLeft(160);
+		enemy.body.moveLeft(speed);
 	}
 	if (direction == 'right'){
 		enemy.body.rotation = -3.12;
-		enemy.body.moveRight(160);
+		enemy.body.moveRight(speed);
 	}
 	if (direction == 'up'){
 		enemy.body.rotation = 1.59;
-		enemy.body.moveUp(160);
+		enemy.body.moveUp(speed);
 	}
 	if (direction == 'down'){
 		enemy.body.rotation = -1.59;
-		enemy.body.moveDown(160);
+		enemy.body.moveDown(speed);
 	}
 }
 
 function fireBullet () {
-    if (game.time.now > bulletTime){
+    if (gameover === false && game.time.now > bulletTime){
 		//  Grab the first bullet we can from the pool
 		bullet = weapon.getFirstExists(false);
 		if (bullet){
