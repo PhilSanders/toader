@@ -14,19 +14,22 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 
 //  Set globals
 var bulletTime = 0;
-var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 ) ;
+var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 );
+var lives = 3;
 var gameover = false;
 var debug = false;
 
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
-    game.load.image('player','assets/img/toad.png');
+    game.load.image('player','assets/img/toad1.png');
     game.load.image('enemy','assets/img/car.png');
 	game.load.image('bullet','assets/img/bullet.png');
 	game.load.spritesheet('explosion','assets/img/explosion1.png', 142, 200, 16);
 }
 
 function create(){
+	//  Scale game
+
 	//  Center game
 	game.scale.pageAlignHorizontally = true;
 	game.scale.pageAlignVeritcally = true;
@@ -144,19 +147,14 @@ function createPlayer(playerCG,enemyCG){
 	//  Modify a few body properties
 	player.body.setZeroDamping();
 	player.body.fixedRotation = false;
-	//player.body.kinematic = true;
+	player.body.kinematic = false;
 
 	//  Set the ships collision group
     player.body.setCollisionGroup(playerCG);
 	//  The ship will collide with the pandas, and when it strikes one the hitPanda callback will fire, causing it to alpha out a bit
     //  When pandas collide with each other, nothing happens to them.
     player.body.collides(enemyCG, function(){
-		player.kill();
-		gameover = true;
-		var gameOverText = game.add.text(400, 300, 'GAME OVER', { font: '48px Arial', fill: '#FFF' });
-		gameOverText.anchor.x = 0.5;
-		gameOverText.anchor.y = 0.5;
-		console.log('Kill Player');
+		playerStatus();
 	});
 }
 
@@ -235,6 +233,25 @@ function fireBullet () {
 			}
 			bulletTime = game.time.now + 400;
 		}
+	}
+}
+
+function playerStatus(){
+	player.kill();
+	lives -= 1;
+	if (lives > 0){
+		player.reset(player.body.x, player.body.y);
+		console.log(lives);
+		console.log('Kill Player');
+	}
+	else {
+		gameover = true;
+		var gameOverText = game.add.text(400, 300, 'GAME OVER', {
+			font: '48px Arial',
+			fill: '#FFF'
+		});
+		gameOverText.anchor.x = 0.5;
+		gameOverText.anchor.y = 0.5;
 	}
 }
 
