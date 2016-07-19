@@ -21,11 +21,11 @@ var bulletTime = 0;
 var debug = false;
 
 function preload() {
-	game.load.image('map', 'assets/img/map1.01.png');
-    game.load.image('player', 'assets/img/toad.png');
-    game.load.image('enemy', 'assets/img/car.png');
-	game.load.image('bullet', 'assets/img/bullet.png');
-	game.load.spritesheet('explosion', 'assets/img/explosion1.png', 142, 200, 16);
+	game.load.image('map','assets/img/map1.01.png');
+    game.load.image('player','assets/img/toad.png');
+    game.load.image('enemy','assets/img/car.png');
+	game.load.image('bullet','assets/img/bullet.png');
+	game.load.spritesheet('explosion','assets/img/explosion1.png', 142, 200, 16);
 }
 
 function create(){
@@ -57,7 +57,7 @@ function create(){
 
 	//  Spawn enemies
 	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
-		spawnEnemy(enemies, enemyCollisionGroup, playerCollisionGroup, weaponCollisionGroup);
+		spawnEnemy(enemies,enemyCollisionGroup,playerCollisionGroup,weaponCollisionGroup);
 	});
 
 	//  Bullets group
@@ -79,7 +79,6 @@ function create(){
 		});
 	});
 
-
 	//  An explosion pool
 	explosions = game.add.group();
 	explosions.createMultiple(30, 'explosion');
@@ -94,7 +93,6 @@ function create(){
 	*/
 	explosions.setAll('anchor.x', 0.5);
 	explosions.setAll('anchor.y', 0.5);
-
 
 	//  Setup input
     cursors = game.input.keyboard.createCursorKeys();
@@ -179,10 +177,10 @@ function createEnemy(game,enemyCollisionGroup,weaponCollisionGroup){
 	return enemies;
 }
 
-function spawnEnemy(enemies, enemyCollisionGroup, playerCollisionGroup, weaponCollisionGroup){
+function spawnEnemy(enemies,enemyCollisionGroup,playerCollisionGroup,weaponCollisionGroup){
 	var enemy = enemies.getFirstExists(false);
 		enemy.reset(820, 260);
-		enemy.body.collides([enemyCollisionGroup, playerCollisionGroup, weaponCollisionGroup]);
+		enemy.body.collides([enemyCollisionGroup,playerCollisionGroup,weaponCollisionGroup]);
 		enemy.body.moveLeft(160);
 }
 
