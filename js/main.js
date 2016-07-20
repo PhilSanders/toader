@@ -16,6 +16,8 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 var bulletTime = 0;
 var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 );
 var lives = 3;
+var playerRespawnTime = 0;
+var playerRespawn = false;
 var gameover = false;
 var debug = false;
 
@@ -105,24 +107,24 @@ function create(){
 }
 
 function update() {
-	var speed = 60;
+	var playerSpeed = 60;
 	player.body.setZeroVelocity();
 
     if (cursors.left.isDown){
-    	player.body.moveLeft(speed);
+    	player.body.moveLeft(playerSpeed);
 		player.body.rotation = -1.59;
     }
     else if (cursors.right.isDown){
-    	player.body.moveRight(speed);
+    	player.body.moveRight(playerSpeed);
 		player.body.rotation = 1.59;
     }
 
     if (cursors.up.isDown){
-    	player.body.moveUp(speed);
+    	player.body.moveUp(playerSpeed);
 		player.body.rotation = 0;
     }
     else if (cursors.down.isDown){
-    	player.body.moveDown(speed);
+    	player.body.moveDown(playerSpeed);
 		player.body.rotation = -3.12;
     }
 	//  Firing?
@@ -132,6 +134,8 @@ function update() {
 
 	//  Check if player is inside playBounds
 	//stayInBoundingBox(player, playerBounds);
+
+	respawnPlayer();
 }
 
 function render() {
@@ -237,14 +241,15 @@ function fireBullet () {
 }
 
 function playerStatus(){
-	player.kill();
-	lives -= 1;
 	if (lives > 0){
-		player.reset(player.body.x, player.body.y);
+		player.kill();
+		playerRespawn = true;
+		lives -= 1;
 		console.log(lives);
 		console.log('Kill Player');
 	}
 	else {
+		player.kill();
 		gameover = true;
 		var gameOverText = game.add.text(400, 300, 'GAME OVER', {
 			font: '48px Arial',
@@ -252,6 +257,17 @@ function playerStatus(){
 		});
 		gameOverText.anchor.x = 0.5;
 		gameOverText.anchor.y = 0.5;
+	}
+}
+
+function respawnPlayer(){
+	if (gameover === false && playerRespawn === true){
+		game.time.events.add(Phaser.Timer.SECOND + 600, function(){
+			playerRespawn = false;
+			player.reset(player.body.x,player.body.y);
+			console.log('player respawn');
+		}
+		, this).autoDestroy = true;
 	}
 }
 
