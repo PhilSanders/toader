@@ -15,7 +15,7 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 //  Set globals
 var bulletTime = 0;
 var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 );
-var lives = 3;
+var lives = 2;
 var playerRespawnTime = 0;
 var playerRespawn = false;
 var gameover = false;
@@ -266,8 +266,7 @@ function respawnPlayer(){
 			playerRespawn = false;
 			player.reset(player.body.x,player.body.y);
 			console.log('player respawn');
-		}
-		, this).autoDestroy = true;
+		}, this).autoDestroy = true;
 	}
 }
 
