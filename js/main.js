@@ -13,10 +13,11 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 });
 
 //  Set globals
-var bulletTime = 0;
-var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 );
+var scale = 2;
 var lives = 2;
+var bulletTime = 0;
 var playerRespawnTime = 0;
+var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 );
 var playerRespawn = false;
 var gameover = false;
 var debug = false;
@@ -24,7 +25,7 @@ var debug = false;
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
     game.load.image('player','assets/img/toad.png');
-	game.load.spritesheet('player_anim','assets/img/toad_anim.png', 36, 32, 2);
+	game.load.spritesheet('player_anim','assets/img/toad_anim.png', 36, 40, 2);
     game.load.image('enemy','assets/img/car.png');
 	game.load.image('bullet','assets/img/bullet.png');
 	game.load.spritesheet('explosion','assets/img/explosion1.png', 142, 200, 16);
@@ -87,7 +88,7 @@ function create(){
 	weapon.forEach(function(e){
 		e.body.setCollisionGroup(weaponCG);
 		e.body.fixedRotation = false;
-		e.scale.set(2);
+		e.scale.set(scale);
 		e.body.collides(enemyCG, function(){
 			e.kill();
 		});
@@ -112,28 +113,23 @@ function update() {
 	var playerSpeed = 60;
 	player.body.setZeroVelocity();
     if (cursors.left.isDown){
-		anim.play(10, true);
     	player.body.moveLeft(playerSpeed);
 		player.body.rotation = -1.59;
     }
     else if (cursors.right.isDown){
-		anim.play(10, true);
     	player.body.moveRight(playerSpeed);
 		player.body.rotation = 1.59;
     }
 
     if (cursors.up.isDown){
-		anim.play(10, true);
     	player.body.moveUp(playerSpeed);
 		player.body.rotation = 0;
     }
     else if (cursors.down.isDown){
-		anim.play(10, true);
     	player.body.moveDown(playerSpeed);
 		player.body.rotation = -3.12;
-    } else {
-		//anim.stop();
-	}
+    }
+
 	//  Firing?
 	if (fireButton.isDown){
 		fireBullet();
@@ -154,9 +150,10 @@ function render() {
 function createPlayer(playerCG,enemyCG){
 	player = game.add.sprite(400, 300, 'player_anim');
 	player.smoothed = false;
-	player.scale.set(2);
+	player.scale.set(scale);
 	anim = player.animations.add('walk');
-	//anim.play(10, true);
+	anim.play(4, true);
+
 	//  Enable player physics
 	game.physics.p2.enable(player, debug);
 	//  Setup player body
@@ -173,6 +170,8 @@ function createEnemy(enemyCG,weaponCG){
 	enemies = game.add.group();
 	enemies.createMultiple(30,'enemy');
     enemies.enableBody = true;
+	enemies.smoothed = false;
+	//enemies.scale.set(scale);
     enemies.physicsBodyType = Phaser.Physics.P2JS;
 	game.physics.p2.enable(enemies, debug);
 	enemies.setAll('anchor.x', 0.5);
