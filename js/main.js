@@ -23,7 +23,8 @@ var debug = false;
 
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
-    game.load.image('player','assets/img/toad1.png');
+    game.load.image('player','assets/img/toad.png');
+	game.load.spritesheet('player_anim','assets/img/toad_anim.png', 36, 32, 2);
     game.load.image('enemy','assets/img/car.png');
 	game.load.image('bullet','assets/img/bullet.png');
 	game.load.spritesheet('explosion','assets/img/explosion1.png', 142, 200, 16);
@@ -86,6 +87,7 @@ function create(){
 	weapon.forEach(function(e){
 		e.body.setCollisionGroup(weaponCG);
 		e.body.fixedRotation = false;
+		e.scale.set(2);
 		e.body.collides(enemyCG, function(){
 			e.kill();
 		});
@@ -109,24 +111,29 @@ function create(){
 function update() {
 	var playerSpeed = 60;
 	player.body.setZeroVelocity();
-
     if (cursors.left.isDown){
+		anim.play(10, true);
     	player.body.moveLeft(playerSpeed);
 		player.body.rotation = -1.59;
     }
     else if (cursors.right.isDown){
+		anim.play(10, true);
     	player.body.moveRight(playerSpeed);
 		player.body.rotation = 1.59;
     }
 
     if (cursors.up.isDown){
+		anim.play(10, true);
     	player.body.moveUp(playerSpeed);
 		player.body.rotation = 0;
     }
     else if (cursors.down.isDown){
+		anim.play(10, true);
     	player.body.moveDown(playerSpeed);
 		player.body.rotation = -3.12;
-    }
+    } else {
+		//anim.stop();
+	}
 	//  Firing?
 	if (fireButton.isDown){
 		fireBullet();
@@ -145,21 +152,21 @@ function render() {
 }
 
 function createPlayer(playerCG,enemyCG){
-	player = game.add.sprite(400, 300, 'player');
-	//  Enable if for physics. This creates a default rectangular body.
+	player = game.add.sprite(400, 300, 'player_anim');
+	player.smoothed = false;
+	player.scale.set(2);
+	anim = player.animations.add('walk');
+	//anim.play(10, true);
+	//  Enable player physics
 	game.physics.p2.enable(player, debug);
-	//  Modify a few body properties
+	//  Setup player body
 	player.body.setZeroDamping();
 	player.body.fixedRotation = false;
 	player.body.kinematic = false;
 
-	//  Set the ships collision group
+	//  Player collision group
     player.body.setCollisionGroup(playerCG);
-	//  The ship will collide with the pandas, and when it strikes one the hitPanda callback will fire, causing it to alpha out a bit
-    //  When pandas collide with each other, nothing happens to them.
-    player.body.collides(enemyCG, function(){
-		playerStatus();
-	});
+    player.body.collides(enemyCG, playerStatus);
 }
 
 function createEnemy(enemyCG,weaponCG){
@@ -213,12 +220,12 @@ function spawnEnemy(enemies,enemyCG,playerCG,weaponCG,xPos,yPos,direction){
 
 function fireBullet () {
     if (gameover === false && game.time.now > bulletTime){
-		//  Grab the first bullet we can from the pool
+		//  Grab a bullet from the pool
 		bullet = weapon.getFirstExists(false);
 		if (bullet){
-			//  And fire it
+			//  Reset bullet from player center
 			bullet.reset(player.x, player.y);
-
+			//  Fire the direction the player is facing
 			if(player.body.rotation == 0){
 				bullet.body.rotation = player.body.rotation;
 				bullet.body.moveUp(400);
