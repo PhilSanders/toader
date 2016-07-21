@@ -15,6 +15,8 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 //  Set globals
 var scale = 1;
 var lives = 2;
+var left;
+var right;
 var bulletTime = 0;
 var playerRespawnTime = 0;
 var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 );
@@ -25,7 +27,7 @@ var debug = false;
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
     game.load.image('player','assets/img/toad.png');
-	game.load.spritesheet('player_anim','assets/img/toad_anim.png', 36, 40, 2);
+	game.load.spritesheet('player_anim','assets/img/toad_anim.png', 40, 40);
     game.load.image('enemy','assets/img/car.png');
 	game.load.image('bullet','assets/img/bullet.png');
 	game.load.spritesheet('explosion','assets/img/explosion1.png', 142, 200, 16);
@@ -110,15 +112,15 @@ function create(){
 }
 
 function update() {
-	var playerSpeed = 40;
+	var playerSpeed = 60;
 	player.body.setZeroVelocity();
     if (cursors.left.isDown){
-		player.play('left');
+		player.play('up');
     	player.body.moveLeft(playerSpeed);
 		player.body.rotation = -1.59;
     }
     else if (cursors.right.isDown){
-		player.play('right');
+		player.play('up');
     	player.body.moveRight(playerSpeed);
 		player.body.rotation = 1.59;
     }
@@ -129,7 +131,7 @@ function update() {
 		player.body.rotation = 0;
     }
     else if (cursors.down.isDown){
-		player.play('down');
+		player.play('up');
     	player.body.moveDown(playerSpeed);
 		player.body.rotation = -3.12;
     }
@@ -150,34 +152,39 @@ function update() {
 
 function render() {
 	//game.debug.body('player');
-	if (debug) game.debug.spriteInfo(player, 32, 500);
-	//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)') ;
+	if (debug) {
+		game.debug.spriteInfo(player, 32, 500);
+		game.debug.text(player.frame, 32, 32);
+		//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
+	}
 }
 
 function createPlayer(playerCG,enemyCG){
 	player = game.add.sprite(400, 300, 'player_anim');
 	player.smoothed = false;
 	player.scale.set(scale);
-	player.animations.add('up',[1,0],4,true);
-	player.animations.add('down',[1,0],4,true);
-	playerLeft = player.animations.add('left',[1,0],4,true);
-	playerRight = player.animations.add('right',[1,0],4,true);
-	playerStand = player.animations.add('stand',[0],4,true);
-	//playerAnim.play(4, true);
-	playerLeft.enableUpdate = true;
-	playerRight.enableUpdate = true;
 
 	//  Enable player physics
 	game.physics.p2.enable(player, debug);
 	//  Setup player body
-	player.body.setRectangle(32,32);
+	player.body.setRectangle(40,40);
 	player.body.setZeroDamping();
 	player.body.fixedRotation = false;
 	player.body.kinematic = false;
 
 	//  Player collision group
-    player.body.setCollisionGroup(playerCG);
-    player.body.collides(enemyCG, playerStatus);
+	player.body.setCollisionGroup(playerCG);
+	player.body.collides(enemyCG, playerStatus);
+
+	//  Player animations
+	player.animations.add('stand',[0],1,true);
+	player.animations.add('up',[1,0],4,true);
+	player.animations.add('down',[1,0],4,true);
+	playerLeft = player.animations.add('left',[3,2],4,true);
+	playerRight = player.animations.add('right',[3,2],4,true);
+
+	playerLeft.enableUpdate = true;
+	playerRight.enableUpdate = true;
 }
 
 function createEnemy(enemyCG,weaponCG){
