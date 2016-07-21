@@ -35,7 +35,8 @@ function preload() {
 
 function create(){
 	//  Scale game
-
+	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+	//game.scale.setScreenSize(true);
 	//  Center game
 	game.scale.pageAlignHorizontally = true;
 	game.scale.pageAlignVeritcally = true;
@@ -147,16 +148,8 @@ function update() {
 	//  Check if player is inside playBounds
 	//stayInBoundingBox(player, playerBounds);
 
+	//  Respawn the player after a few seconds
 	respawnPlayer();
-}
-
-function render() {
-	//game.debug.body('player');
-	if (debug) {
-		game.debug.spriteInfo(player, 32, 500);
-		game.debug.text(player.frame, 32, 32);
-		//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
-	}
 }
 
 function createPlayer(playerCG,enemyCG){
@@ -178,10 +171,10 @@ function createPlayer(playerCG,enemyCG){
 
 	//  Player animations
 	player.animations.add('stand',[0],1,true);
-	player.animations.add('up',[1,0],4,true);
-	player.animations.add('down',[1,0],4,true);
-	playerLeft = player.animations.add('left',[3,2],4,true);
-	playerRight = player.animations.add('right',[3,2],4,true);
+	player.animations.add('up',[1,0],6,true);
+	player.animations.add('down',[1,0],6,true);
+	playerLeft = player.animations.add('left',[3,2],6,true);
+	playerRight = player.animations.add('right',[3,2],6,true);
 
 	playerLeft.enableUpdate = true;
 	playerRight.enableUpdate = true;
@@ -318,5 +311,14 @@ function stayInBoundingBox(player, playerBounds) {
 	}
 	else if (ty2 + h > p.y + p.height) {
 		tpos.y = p.y + p.height - h*2;
+	}
+}
+
+function render() {
+	//game.debug.body('player');
+	if (debug) {
+		game.debug.spriteInfo(player, 32, 500);
+		game.debug.text(player.frame, 32, 32);
+		//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
 	}
 }
