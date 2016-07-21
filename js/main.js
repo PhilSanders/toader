@@ -13,7 +13,7 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 });
 
 //  Set globals
-var scale = 2;
+var scale = 1;
 var lives = 2;
 var bulletTime = 0;
 var playerRespawnTime = 0;
@@ -151,8 +151,8 @@ function createPlayer(playerCG,enemyCG){
 	player = game.add.sprite(400, 300, 'player_anim');
 	player.smoothed = false;
 	player.scale.set(scale);
-	anim = player.animations.add('walk');
-	anim.play(4, true);
+	playerAnim = player.animations.add('walk');
+	playerAnim.play(4, true);
 
 	//  Enable player physics
 	game.physics.p2.enable(player, debug);
