@@ -70,7 +70,7 @@ function create(){
 	game.time.events.repeat(Phaser.Timer.SECOND * 4.2, 20, function(){
 		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,0,340,'right');
 	});
-	game.time.events.repeat(Phaser.Timer.SECOND * 5, 20, function(){
+	game.time.events.repeat(Phaser.Timer.SECOND * 4, 20, function(){
 		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,440,600,'up');
 	});
 	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
@@ -117,23 +117,23 @@ function update() {
     if (cursors.left.isDown){
 		player.play('up');
     	player.body.moveLeft(playerSpeed);
-		player.body.rotation = -1.59;
+		player.body.angle = -90;
     }
     else if (cursors.right.isDown){
 		player.play('up');
     	player.body.moveRight(playerSpeed);
-		player.body.rotation = 1.59;
+		player.body.angle = 90;
     }
 
     if (cursors.up.isDown){
 		player.play('up');
     	player.body.moveUp(playerSpeed);
-		player.body.rotation = 0;
+		player.body.angle = 0;
     }
     else if (cursors.down.isDown){
 		player.play('up');
     	player.body.moveDown(playerSpeed);
-		player.body.rotation = -3.12;
+		player.body.angle = -180;
     }
 	else {
 		player.play("stand");
@@ -167,8 +167,8 @@ function createPlayer(playerCG,enemyCG){
 	//  Enable player physics
 	game.physics.p2.enable(player, debug);
 	//  Setup player body
-	player.body.setRectangle(40,40);
-	player.body.setZeroDamping();
+	player.body.setRectangle(32,32);
+	//player.body.setZeroDamping();
 	player.body.fixedRotation = false;
 	player.body.kinematic = false;
 
@@ -221,19 +221,19 @@ function spawnEnemy(enemies,enemyCG,playerCG,weaponCG,xPos,yPos,direction){
 	enemy.body.collides([enemyCG,playerCG,weaponCG]);
 
 	if (direction == 'left'){
-		enemy.body.rotation = 0;
+		enemy.body.angle = 0;
 		enemy.body.moveLeft(speed);
 	}
 	if (direction == 'right'){
-		enemy.body.rotation = -3.12;
+		enemy.body.angle = -180;
 		enemy.body.moveRight(speed);
 	}
 	if (direction == 'up'){
-		enemy.body.rotation = 1.59;
+		enemy.body.angle = 90;
 		enemy.body.moveUp(speed);
 	}
 	if (direction == 'down'){
-		enemy.body.rotation = -1.59;
+		enemy.body.angle = -90;
 		enemy.body.moveDown(speed);
 	}
 }
@@ -246,20 +246,20 @@ function fireBullet () {
 			//  Reset bullet from player center
 			bullet.reset(player.x, player.y);
 			//  Fire the direction the player is facing
-			if(player.body.rotation == 0){
-				bullet.body.rotation = player.body.rotation;
+			if(player.body.angle == 0){
+				bullet.body.angle = player.body.angle;
 				bullet.body.moveUp(400);
 			}
-			if(player.body.rotation == -3.12){
-				bullet.body.rotation = player.body.rotation;
+			if(player.body.angle == -180){
+				bullet.body.angle = player.body.angle;
 				bullet.body.moveDown(400);
 			}
-			if(player.body.rotation == -1.59){
-				bullet.body.rotation = player.body.rotation;
+			if(player.body.angle == -90){
+				bullet.body.angle = player.body.angle;
 				bullet.body.moveLeft(400);
 			}
-			if(player.body.rotation == 1.59){
-				bullet.body.rotation = player.body.rotation;
+			if(player.body.angle == 90){
+				bullet.body.angle = player.body.angle;
 				bullet.body.moveRight(400);
 			}
 			bulletTime = game.time.now + 400;
