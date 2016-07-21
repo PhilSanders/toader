@@ -110,25 +110,32 @@ function create(){
 }
 
 function update() {
-	var playerSpeed = 60;
+	var playerSpeed = 40;
 	player.body.setZeroVelocity();
     if (cursors.left.isDown){
+		player.play('left');
     	player.body.moveLeft(playerSpeed);
 		player.body.rotation = -1.59;
     }
     else if (cursors.right.isDown){
+		player.play('right');
     	player.body.moveRight(playerSpeed);
 		player.body.rotation = 1.59;
     }
 
     if (cursors.up.isDown){
+		player.play('up');
     	player.body.moveUp(playerSpeed);
 		player.body.rotation = 0;
     }
     else if (cursors.down.isDown){
+		player.play('down');
     	player.body.moveDown(playerSpeed);
 		player.body.rotation = -3.12;
     }
+	else {
+		player.play("stand");
+	}
 
 	//  Firing?
 	if (fireButton.isDown){
@@ -151,12 +158,19 @@ function createPlayer(playerCG,enemyCG){
 	player = game.add.sprite(400, 300, 'player_anim');
 	player.smoothed = false;
 	player.scale.set(scale);
-	playerAnim = player.animations.add('walk');
-	playerAnim.play(4, true);
+	player.animations.add('up',[1,0],4,true);
+	player.animations.add('down',[1,0],4,true);
+	playerLeft = player.animations.add('left',[1,0],4,true);
+	playerRight = player.animations.add('right',[1,0],4,true);
+	playerStand = player.animations.add('stand',[0],4,true);
+	//playerAnim.play(4, true);
+	playerLeft.enableUpdate = true;
+	playerRight.enableUpdate = true;
 
 	//  Enable player physics
 	game.physics.p2.enable(player, debug);
 	//  Setup player body
+	player.body.setRectangle(32,32);
 	player.body.setZeroDamping();
 	player.body.fixedRotation = false;
 	player.body.kinematic = false;
