@@ -17,7 +17,7 @@ var scale = 1;
 var lives = 2;
 var bulletTime = 0;
 var playerRespawnTime = 0;
-var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 );
+var playerBounds = new Phaser.Rectangle( 280, 180, 240, 235 );
 var playerRespawn = false;
 var gameover = false;
 var debug = false;
@@ -26,14 +26,14 @@ function preload() {
 	game.load.image('map','assets/img/map1.01.png');
     game.load.image('player','assets/img/toad.png');
 	game.load.spritesheet('player_anim','assets/img/toad_anim.png', 40, 40);
-    game.load.image('enemy','assets/img/car.png');
+    game.load.image('enemy','assets/img/car_blue.png');
 	game.load.image('bullet','assets/img/bullet.png');
 	game.load.spritesheet('explosion','assets/img/explosion1.png', 142, 200, 16);
 }
 
 function create(){
 	//  Scale game
-	//game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 	//game.scale.setScreenSize(true);
 	//  Center game
 	game.scale.pageAlignHorizontally = true;
@@ -134,9 +134,9 @@ function update() {
 		player.body.angle = -180;
     }
 	else {
-		player.animations.stop();
-		//player.animations.stop(null,false);
-		//player.animations.frame = 0;
+		if (!isOdd(player.animations.currentAnim.frame)){
+			player.animations.stop();
+		}
 	}
 
 	//  Firing?
@@ -160,13 +160,14 @@ function createPlayer(playerCG,enemyCG){
 	game.physics.p2.enable(player, debug);
 	//  Setup player body
 	player.body.setRectangle(32,32);
-	//player.body.setZeroDamping();
+	player.body.setZeroDamping();
 	player.body.fixedRotation = false;
 	player.body.kinematic = false;
 
 	//  Player collision group
 	player.body.setCollisionGroup(playerCG);
 	player.body.collides(enemyCG, playerStatus);
+	player.body.collideWorldBounds = true;
 
 	//  Player animations
 	player.animations.add('stand',[0],1,true);
@@ -208,7 +209,7 @@ function createEnemy(enemyCG,weaponCG){
 
 function spawnEnemy(enemies,enemyCG,playerCG,weaponCG,xPos,yPos,direction){
 	var enemy = enemies.getFirstExists(false),
-		speed = 200;
+		speed = 150;
 	enemy.reset(xPos, yPos);
 	enemy.body.collides([enemyCG,playerCG,weaponCG]);
 
@@ -315,11 +316,16 @@ function stayInBoundingBox(player, playerBounds) {
 	}
 }
 
+function isOdd(n) {
+  return n == parseFloat(n) && !!(n % 2);
+}
+
 function render() {
 	//game.debug.body('player');
 	if (debug) {
 		game.debug.spriteInfo(player, 32, 500);
 		game.debug.text(player.frame, 32, 32);
-		//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
+
 	}
+	//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
 }
