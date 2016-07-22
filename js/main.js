@@ -132,12 +132,13 @@ function update() {
 		player.body.angle = 0;
     }
     else if (cursors.down.isDown){
-		player.play('up');
+		player.play('down');
     	player.body.moveDown(playerSpeed);
 		player.body.angle = -180;
     }
 	else {
-		player.play("stand");
+		player.animations.stop(null,false);
+		//player.animations.frame = 0;
 	}
 
 	//  Firing?
@@ -171,10 +172,10 @@ function createPlayer(playerCG,enemyCG){
 
 	//  Player animations
 	player.animations.add('stand',[0],1,true);
-	player.animations.add('up',[1,0],6,true);
-	player.animations.add('down',[1,0],6,true);
-	playerLeft = player.animations.add('left',[3,2],6,true);
-	playerRight = player.animations.add('right',[3,2],6,true);
+	player.animations.add('up',[1,0,0],10,true);
+	player.animations.add('down',[5,4,4],10,true);
+	playerLeft = player.animations.add('left',[3,2,2],10,true);
+	playerRight = player.animations.add('right',[3,2,2],10,true);
 
 	playerLeft.enableUpdate = true;
 	playerRight.enableUpdate = true;
@@ -236,22 +237,24 @@ function fireBullet () {
 		//  Grab a bullet from the pool
 		bullet = weapon.getFirstExists(false);
 		if (bullet){
-			//  Reset bullet from player center
-			bullet.reset(player.x, player.y);
 			//  Fire the direction the player is facing
 			if(player.body.angle == 0){
+				bullet.reset(player.x, player.y - 15);
 				bullet.body.angle = player.body.angle;
 				bullet.body.moveUp(400);
 			}
 			if(player.body.angle == -180){
+				bullet.reset(player.x, player.y + 15);
 				bullet.body.angle = player.body.angle;
 				bullet.body.moveDown(400);
 			}
 			if(player.body.angle == -90){
+				bullet.reset(player.x - 15, player.y);
 				bullet.body.angle = player.body.angle;
 				bullet.body.moveLeft(400);
 			}
 			if(player.body.angle == 90){
+				bullet.reset(player.x + 15, player.y);
 				bullet.body.angle = player.body.angle;
 				bullet.body.moveRight(400);
 			}
