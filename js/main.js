@@ -15,8 +15,6 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 //  Set globals
 var scale = 1;
 var lives = 2;
-var left;
-var right;
 var bulletTime = 0;
 var playerRespawnTime = 0;
 var playerBounds = new Phaser.Rectangle( 300, 200, 200, 200 );
@@ -35,7 +33,7 @@ function preload() {
 
 function create(){
 	//  Scale game
-	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+	//game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 	//game.scale.setScreenSize(true);
 	//  Center game
 	game.scale.pageAlignHorizontally = true;
@@ -113,20 +111,19 @@ function create(){
 }
 
 function update() {
-	var playerSpeed = 60;
+	var playerSpeed = 65;
 	player.body.setZeroVelocity();
     if (cursors.left.isDown){
-		player.play('up');
+		player.play('left');
     	player.body.moveLeft(playerSpeed);
 		player.body.angle = -90;
     }
     else if (cursors.right.isDown){
-		player.play('up');
+		player.play('right');
     	player.body.moveRight(playerSpeed);
 		player.body.angle = 90;
     }
-
-    if (cursors.up.isDown){
+    else if (cursors.up.isDown){
 		player.play('up');
     	player.body.moveUp(playerSpeed);
 		player.body.angle = 0;
@@ -137,7 +134,8 @@ function update() {
 		player.body.angle = -180;
     }
 	else {
-		player.animations.stop(null,false);
+		player.animations.stop();
+		//player.animations.stop(null,false);
 		//player.animations.frame = 0;
 	}
 
@@ -175,7 +173,7 @@ function createPlayer(playerCG,enemyCG){
 	player.animations.add('up',[1,0,0],10,true);
 	player.animations.add('down',[5,4,4],10,true);
 	playerLeft = player.animations.add('left',[3,2,2],10,true);
-	playerRight = player.animations.add('right',[3,2,2],10,true);
+	playerRight = player.animations.add('right',[7,6,6],10,true);
 
 	playerLeft.enableUpdate = true;
 	playerRight.enableUpdate = true;
