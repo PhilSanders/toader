@@ -5,7 +5,7 @@
  * Web: http://www.sourcetoad.com/
  */
 
-var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
+var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'toader', {
 	preload: preload,
 	create:  create,
 	update:  update,
@@ -150,11 +150,11 @@ function update() {
 		fireBullet();
 	}
 
-	//  Check if player is inside playBounds
-	//stayInBoundingBox(player, playerBounds);
-
 	//  Respawn the player after a few seconds
 	respawnPlayer();
+
+	//  Check if player is inside playBounds
+	//stayInBoundingBox(player, playerBounds);
 }
 
 function createPlayer(playerCG,enemyCG){
@@ -335,7 +335,7 @@ function isOdd(n) {
 function render() {
 	//game.debug.body('player');
 	if (debug) {
-		game.debug.spriteInfo(player, 32, 500);
+		game.debug.spriteInfo(player, 32, 650);
 		game.debug.text(player.frame, 32, 32);
 	}
 	//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
