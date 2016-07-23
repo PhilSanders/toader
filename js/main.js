@@ -26,7 +26,13 @@ function preload() {
 	game.load.image('map','assets/img/map1.01.png');
     game.load.image('player','assets/img/toad.png');
 	game.load.spritesheet('player_anim','assets/img/toad_anim.png', 40, 40);
-    game.load.image('enemy','assets/img/car_blue.png');
+    game.load.image('enemy_0','assets/img/car.png');
+	game.load.image('enemy_1','assets/img/car_red.png');
+	game.load.image('enemy_2','assets/img/car_blue.png');
+	game.load.image('enemy_3','assets/img/car_yellow.png');
+	game.load.image('enemy_4','assets/img/car_green.png');
+	game.load.image('enemy_5','assets/img/car_purple.png');
+	game.load.image('enemy_6','assets/img/car_pink.png');
 	game.load.image('bullet','assets/img/bullet.png');
 	game.load.spritesheet('explosion','assets/img/explosion1.png', 142, 200, 16);
 }
@@ -64,16 +70,16 @@ function create(){
 
 	//  Spawn enemies
 	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
-		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,820,260,'left');
+		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,820,250,'left');
 	});
 	game.time.events.repeat(Phaser.Timer.SECOND * 4.2, 20, function(){
-		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,0,340,'right');
+		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,0,350,'right');
 	});
 	game.time.events.repeat(Phaser.Timer.SECOND * 4, 20, function(){
-		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,440,600,'up');
+		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,450,600,'up');
 	});
 	game.time.events.repeat(Phaser.Timer.SECOND * 3.2, 20, function(){
-		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,360,0,'down');
+		spawnEnemy(enemies,enemyCG,playerCG,weaponCG,350,0,'down');
 	});
 
 	//  Weapon group
@@ -182,7 +188,7 @@ function createPlayer(playerCG,enemyCG){
 
 function createEnemy(enemyCG,weaponCG){
 	enemies = game.add.group();
-	enemies.createMultiple(30,'enemy');
+	enemies.createMultiple(30, 'enemy_0');
     enemies.enableBody = true;
 	enemies.smoothed = false;
 	//enemies.scale.set(scale);
@@ -190,9 +196,12 @@ function createEnemy(enemyCG,weaponCG){
 	game.physics.p2.enable(enemies, debug);
 	enemies.setAll('anchor.x', 0.5);
 	enemies.setAll('anchor.y', 0.5);
-    enemies.setAll('outOfBoundsKill', true);
     enemies.setAll('checkWorldBounds', true);
+	enemies.setAll('outOfBoundsKill', true);
 	enemies.forEach(function(e){
+		// randomize textures
+		var newEnemy = 'enemy_' + game.rnd.integerInRange(0, 6);
+		e.loadTexture(newEnemy, 0, false);
 		e.body.setCollisionGroup(enemyCG);
 		e.body.fixedRotation = false;
 		e.body.kinematic = true;
@@ -201,7 +210,7 @@ function createEnemy(enemyCG,weaponCG){
 			explode.reset(e.body.x, e.body.y);
 			explode.play('explosion', 30, false, true);
 			e.kill();
-			console.log('Kill Enemy');
+			//console.log('Kill Enemy');
 		});
 	});
 	return enemies;
@@ -232,7 +241,7 @@ function spawnEnemy(enemies,enemyCG,playerCG,weaponCG,xPos,yPos,direction){
 }
 
 function fireBullet () {
-    if (gameover === false && game.time.now > bulletTime){
+    if (gameover === false && playerRespawn === false && game.time.now > bulletTime){
 		//  Grab a bullet from the pool
 		bullet = weapon.getFirstExists(false);
 		if (bullet){
@@ -263,10 +272,13 @@ function fireBullet () {
 }
 
 function playerStatus(){
-	if (lives > 0){
+	if (gameover === true) {
 		player.kill();
-		playerRespawn = true;
+	}
+	else if (lives > 0){
 		lives -= 1;
+		playerRespawn = true;
+		player.kill();
 		console.log(lives);
 		console.log('Kill Player');
 	}
@@ -325,7 +337,6 @@ function render() {
 	if (debug) {
 		game.debug.spriteInfo(player, 32, 500);
 		game.debug.text(player.frame, 32, 32);
-
 	}
 	//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
 }
