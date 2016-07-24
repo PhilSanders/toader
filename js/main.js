@@ -328,8 +328,8 @@ function killPlayer (body) {
 
 function respawnPlayer(){
 	if (gameover === false && playerRespawn === true){
+		playerRespawn = false;
 		game.time.events.add(Phaser.Timer.SECOND + 600, function(){
-			playerRespawn = false;
 			player.reset(player.body.x,player.body.y);
 			console.log('player respawn');
 		}, this).autoDestroy = true;
