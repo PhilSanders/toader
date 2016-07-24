@@ -16,15 +16,14 @@ var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'toader', {
 var scale = 1;
 var lives = 3;
 var points = 0;
-var enemyValue = 10;
+var enemyValue = 5;
 var bulletTime = 0;
 var playerRespawnTime = 0;
 var playerBounds = new Phaser.Rectangle( 280, 180, 240, 235 );
 var playerRespawn = false;
 var gameover = false;
-var debug = false;
-
-var result = '';
+var debug = true;
+var result = 'You last hit: ';
 
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
@@ -44,7 +43,6 @@ function preload() {
 function create(){
 	//  Scale game
 	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-	//game.scale.setScreenSize(true);
 	//  Center game
 	game.scale.pageAlignHorizontally = true;
 	game.scale.pageAlignVeritcally = true;
@@ -366,14 +364,16 @@ function isOdd(n) {
 }
 
 function render() {
-	//game.debug.body('player');
+	//  Display Lives and Points
+	game.debug.text('Lives: '+ lives, 20,20);
+	game.debug.text('Points: '+ points, 120,20);
+
+	//  Debug bodies
 	if (debug) {
 		game.debug.spriteInfo(player, 32, 650);
-		game.debug.text(player.frame, 32, 32);
+		game.debug.text('Player Anim Frame: ' + player.frame, game.world.centerX+150,640);
+		game.debug.text(result, game.world.centerX+150,660);
 	}
-	//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
-	game.debug.text('Lives: '+ lives, game.world.centerX+280,650);
-	game.debug.text('Points: '+ points, game.world.centerX+280,670);
 
-	game.debug.text(result, game.world.centerX+180,690);
+
 }
