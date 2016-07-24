@@ -22,7 +22,7 @@ var playerRespawnTime = 0;
 var playerBounds = new Phaser.Rectangle( 280, 180, 240, 235 );
 var playerRespawn = false;
 var gameover = false;
-var debug = true;
+var debug = false;
 var result = 'You last hit: ';
 
 function preload() {
@@ -197,7 +197,7 @@ function createPlayer(playerCG,enemyCG){
 	player.body.collideWorldBounds = true;
 
 	//  Check for the block hitting another object
-    player.body.onBeginContact.add(killPlayer, this);
+    player.body.onBeginContact.add(playerStatus, this);
 
 	//  Player animations
 	player.animations.add('stand',[0],1,true);
@@ -295,7 +295,7 @@ function fireBullet () {
 	}
 }
 
-function killPlayer (body) {
+function playerStatus (body) {
     if (gameover === true) {
 		player.kill();
 	}
