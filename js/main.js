@@ -16,6 +16,7 @@ var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'toader', {
 var scale = 1;
 var lives = 3;
 var points = 0;
+var enemyValue = 10;
 var bulletTime = 0;
 var playerRespawnTime = 0;
 var playerBounds = new Phaser.Rectangle( 280, 180, 240, 235 );
@@ -103,7 +104,7 @@ function create(){
 		//  Check for the block hitting another object
     	e.body.onBeginContact.add(function(){
 			e.kill();
-			points += 10;
+			points += enemyValue;
 		}, this);
 	});
 
@@ -300,7 +301,7 @@ function killPlayer (body) {
     if (gameover === true) {
 		player.kill();
 	}
-	else if (lives != 0){
+	else if (lives > 1){
 		lives -= 1;
 		playerRespawn = true;
 		player.kill();
