@@ -14,14 +14,16 @@ var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'toader', {
 
 //  Set globals
 var scale = 1;
-var lives = 2;
+var lives = 3;
 var points = 0;
 var bulletTime = 0;
 var playerRespawnTime = 0;
 var playerBounds = new Phaser.Rectangle( 280, 180, 240, 235 );
 var playerRespawn = false;
 var gameover = false;
-var debug = true;
+var debug = false;
+
+var result = '';
 
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
@@ -97,10 +99,12 @@ function create(){
 		e.body.setCollisionGroup(weaponCG);
 		e.body.fixedRotation = false;
 		e.scale.set(scale);
-		e.body.collides(enemyCG, function(){
+		e.body.collides(enemyCG);
+		//  Check for the block hitting another object
+    	e.body.onBeginContact.add(function(){
 			e.kill();
 			points += 10;
-		});
+		}, this);
 	});
 
 	//  Explosion group
@@ -190,8 +194,11 @@ function createPlayer(playerCG,enemyCG){
 
 	//  Player collision group
 	player.body.setCollisionGroup(playerCG);
-	player.body.collides(enemyCG, playerStatus);
+	player.body.collides(enemyCG);
 	player.body.collideWorldBounds = true;
+
+	//  Check for the block hitting another object
+    player.body.onBeginContact.add(killPlayer, this);
 
 	//  Player animations
 	player.animations.add('stand',[0],1,true);
@@ -289,15 +296,15 @@ function fireBullet () {
 	}
 }
 
-function playerStatus(){
-	if (gameover === true) {
+function killPlayer (body) {
+    if (gameover === true) {
 		player.kill();
 	}
-	else if (lives > 0){
+	else if (lives != 0){
 		lives -= 1;
 		playerRespawn = true;
 		player.kill();
-		console.log(lives);
+		//console.log(lives);
 		console.log('Kill Player');
 	}
 	else {
@@ -310,6 +317,13 @@ function playerStatus(){
 		gameOverText.anchor.x = 0.5;
 		gameOverText.anchor.y = 0.5;
 	}
+
+	if (body){
+        result = 'You last hit: ' + body.sprite.key;
+    }
+    else {
+        result = 'You last hit: The wall :)';
+    }
 }
 
 function respawnPlayer(){
@@ -357,5 +371,8 @@ function render() {
 		game.debug.text(player.frame, 32, 32);
 	}
 	//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
-	game.debug.text('Points: '+ points, game.world.centerX+280,650);
+	game.debug.text('Lives: '+ lives, game.world.centerX+280,650);
+	game.debug.text('Points: '+ points, game.world.centerX+280,670);
+
+	game.debug.text(result, game.world.centerX+180,690);
 }
