@@ -15,12 +15,13 @@ var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'toader', {
 //  Set globals
 var scale = 1;
 var lives = 2;
+var points = 0;
 var bulletTime = 0;
 var playerRespawnTime = 0;
 var playerBounds = new Phaser.Rectangle( 280, 180, 240, 235 );
 var playerRespawn = false;
 var gameover = false;
-var debug = false;
+var debug = true;
 
 function preload() {
 	game.load.image('map','assets/img/map1.01.png');
@@ -98,6 +99,7 @@ function create(){
 		e.scale.set(scale);
 		e.body.collides(enemyCG, function(){
 			e.kill();
+			points += 10;
 		});
 	});
 
@@ -150,11 +152,27 @@ function update() {
 		fireBullet();
 	}
 
+	//  Points
+	//tallyPoints(points)
+
 	//  Respawn the player after a few seconds
 	respawnPlayer();
 
 	//  Check if player is inside playBounds
 	//stayInBoundingBox(player, playerBounds);
+}
+
+function tallyPoints(points){
+	console.log(points);
+	if(points === 0){
+		var pointsText = game.add.text(20, 300, points, {
+			font: '24px Arial',
+			fill: '#FFF'
+		});
+	}
+	else {
+		pointsText.setText(points);
+	}
 }
 
 function createPlayer(playerCG,enemyCG){
@@ -339,4 +357,5 @@ function render() {
 		game.debug.text(player.frame, 32, 32);
 	}
 	//game.debug.geom(playerBounds, 'rgba(255,0,255,0.2)');
+	game.debug.text('Points: '+ points, game.world.centerX+280,650);
 }
