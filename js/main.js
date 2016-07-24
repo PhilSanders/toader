@@ -155,27 +155,11 @@ function update() {
 		fireBullet();
 	}
 
-	//  Points
-	//tallyPoints(points)
-
 	//  Respawn the player after a few seconds
 	respawnPlayer();
 
 	//  Check if player is inside playBounds
 	//stayInBoundingBox(player, playerBounds);
-}
-
-function tallyPoints(points){
-	console.log(points);
-	if(points === 0){
-		var pointsText = game.add.text(20, 300, points, {
-			font: '24px Arial',
-			fill: '#FFF'
-		});
-	}
-	else {
-		pointsText.setText(points);
-	}
 }
 
 function createPlayer(playerCG,enemyCG){
@@ -317,6 +301,7 @@ function playerStatus (body) {
 		gameOverText.anchor.y = 0.5;
 	}
 
+	//  Debug onBeginContact bodies
 	if (body){
         result = 'You last hit: ' + body.sprite.key;
     }
