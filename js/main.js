@@ -8,6 +8,8 @@
 var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'toader', {
 	preload: preload,
 	create:  create,
+	createTimer: createTime,
+	updateTimer: updateTime,
 	update:  update,
 	render:  render
 });
@@ -18,9 +20,11 @@ var lives = 3;
 var points = 0;
 var enemyValue = 5;
 var bulletTime = 0;
+var gameTime = 0;
 var playerRespawnTime = 0;
 var playerBounds = new Phaser.Rectangle( 280, 180, 240, 235 );
 var playerRespawn = false;
+var safeZone = false;
 var gameover = false;
 var debug = false;
 var result = 'You last hit: ';
@@ -38,14 +42,27 @@ function preload() {
 	game.load.image('enemy_6','assets/img/car_pink.png');
 	game.load.image('bullet','assets/img/bullet.png');
 	game.load.spritesheet('explosion','assets/img/explosion1.png', 142, 200, 16);
+	game.load.image('gameover','assets/img/gameover.png');
 }
 
 function create(){
+
+	//  Game Time
+	game.time.advancedTiming = true;
+    game.time.desiredFps = 60;
+
+	var time = this;
+    time.gameTimer = game.time.events.loop(1000, function(){
+        time.updateTimer();
+    });
+
 	//  Scale game
 	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+
 	//  Center game
 	game.scale.pageAlignHorizontally = true;
 	game.scale.pageAlignVeritcally = true;
+
 	//  Enable P2JS Physics
 	game.physics.startSystem(Phaser.Physics.P2JS);
 	//  Turn on impact events for the world, without this we get no collision callbacks
@@ -121,6 +138,24 @@ function create(){
 
 }
 
+function createTime(){
+    //timeLabel = game.add.text(250, 20, "Time: 00:00", '');
+	/* game text
+	{
+		font: "100px Arial",
+		fill: "#fff"
+	}*/
+}
+
+function updateTime(){
+
+	seconds = gameTime + 1;
+
+	minutes = Math.floor(seconds / 60);
+
+	gameTime = minutes;
+}
+
 function update() {
 	var playerSpeed = 65;
 	player.body.setZeroVelocity();
@@ -156,7 +191,10 @@ function update() {
 	}
 
 	//  Respawn the player after a few seconds
-	respawnPlayer();
+	//respawnPlayer();
+
+	//  PLayer hit time after respawn
+	//playerHitTimeout()
 
 	//  Check if player is inside playBounds
 	//stayInBoundingBox(player, playerBounds);
@@ -280,26 +318,26 @@ function fireBullet () {
 }
 
 function playerStatus (body) {
+
     if (gameover === true) {
 		player.kill();
 	}
 	else if (lives > 1){
-		lives -= 1;
 		playerRespawn = true;
 		player.kill();
+		respawnPlayer();
 		//console.log(lives);
-		console.log('Kill Player');
+		//console.log('Kill Player');
 	}
 	else {
 		player.kill();
 		gameover = true;
-		var gameOverText = game.add.text(400, 300, 'GAME OVER', {
-			font: '48px Arial',
-			fill: '#FFF'
-		});
+		gameOverText = game.add.sprite(400, 300, 'gameover')
 		gameOverText.anchor.x = 0.5;
 		gameOverText.anchor.y = 0.5;
 	}
+
+	lives -= 1;
 
 	//  Debug onBeginContact bodies
 	if (body){
@@ -313,11 +351,31 @@ function playerStatus (body) {
 function respawnPlayer(){
 	if (gameover === false && playerRespawn === true){
 		playerRespawn = false;
-		game.time.events.add(Phaser.Timer.SECOND + 600, function(){
-			player.reset(player.body.x,player.body.y);
-			console.log('player respawn');
+		safeZone = true;
+		console.log('player respawn time out');
+		game.time.events.add(Phaser.Timer.SECOND + 300, function(){
+			player.reset(game.world.centerX,game.world.centerY - 100);
+			player.alpha = 0.4;
+			//  Start player hit timeout
+			playerHitTimeout();
+			game.time.events.add(Phaser.Timer.SECOND + 300, function(){
+				console.log('player not safe');
+				//player.body.setRectangle(32,32);
+				safeZone = false;
+				player.alpha = 1;
+			}, this).autoDestroy = true;
 		}, this).autoDestroy = true;
 	}
+}
+
+function playerHitTimeout(){
+
+	game.time.events.add(Phaser.Timer.SECOND, function(){
+		console.log('player safe');
+		//player.body.setRectangle(0,0);
+		player.alpha = 0.8;
+	}, this);
+
 }
 
 function stayInBoundingBox(player, playerBounds) {
@@ -351,13 +409,13 @@ function isOdd(n) {
 function render() {
 	//  Display Lives and Points
 	game.debug.text('Lives: '+ lives, 20,20);
-	game.debug.text('Points: '+ points, 120,20);
-
+	game.debug.text('Points: '+ points, 130,20);
+	game.debug.text('Time: ' + gameTime, 250, 20)
 	//  Debug bodies
 	if (debug) {
 		game.debug.spriteInfo(player, 32, 650);
-		game.debug.text('Player Anim Frame: ' + player.frame, game.world.centerX+150,640);
-		game.debug.text(result, game.world.centerX+150,660);
+		game.debug.text('Player Anim Frame: ' + player.frame, game.world.centerX+150, 640);
+		game.debug.text(result, game.world.centerX+150, 660);
 	}
 
 
