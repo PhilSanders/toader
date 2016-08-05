@@ -5,7 +5,7 @@
  * Web: http://www.sourcetoad.com/
  */
 
-var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'toader', {
+var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 	preload: preload,
 	create:  create,
 	createTimer: createTime,
@@ -33,7 +33,7 @@ function preload() {
 	game.load.image('map','assets/img/map1.01.png');
     game.load.image('player','assets/img/toad.png');
 	game.load.spritesheet('player_anim','assets/img/toad_anim.png', 40, 40);
-    game.load.image('enemy_0','assets/img/car.png');
+    game.load.image('enemy_0','assets/img/car_white.png');
 	game.load.image('enemy_1','assets/img/car_red.png');
 	game.load.image('enemy_2','assets/img/car_blue.png');
 	game.load.image('enemy_3','assets/img/car_yellow.png');
@@ -332,7 +332,7 @@ function playerStatus (body) {
 	else {
 		player.kill();
 		gameover = true;
-		gameOverText = game.add.sprite(400, 300, 'gameover')
+		gameOverText = game.add.button(game.world.centerX, game.world.centerY, 'gameover', restartGame, this, 2, 1, 0);
 		gameOverText.anchor.x = 0.5;
 		gameOverText.anchor.y = 0.5;
 	}
@@ -348,13 +348,20 @@ function playerStatus (body) {
     }
 }
 
+function restartGame(){
+	lives = 3;
+	points = 0;
+	gameover = false;
+	game.state.restart();
+}
+
 function respawnPlayer(){
 	if (gameover === false && playerRespawn === true){
 		playerRespawn = false;
 		safeZone = true;
 		console.log('player respawn time out');
 		game.time.events.add(Phaser.Timer.SECOND + 300, function(){
-			player.reset(game.world.centerX,game.world.centerY - 100);
+			player.reset(game.world.centerX,game.world.centerY);
 			player.alpha = 0.4;
 			//  Start player hit timeout
 			playerHitTimeout();
@@ -410,7 +417,7 @@ function render() {
 	//  Display Lives and Points
 	game.debug.text('Lives: '+ lives, 20,20);
 	game.debug.text('Points: '+ points, 130,20);
-	game.debug.text('Time: ' + gameTime, 250, 20)
+	//game.debug.text('Time: ' + gameTime, 250, 20)
 	//  Debug bodies
 	if (debug) {
 		game.debug.spriteInfo(player, 32, 650);
