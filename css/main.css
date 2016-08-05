@@ -3,4 +3,24 @@ body {
 	background: #000;
 	height: auto;
 	min-height: 100%;
+	margin: 0;
+}
+
+.container {
+	width: 100%;
+}
+
+.toader-container {
+	text-align: center;
+}
+
+.toader {
+    width: 800px;
+    margin: 0 auto;
+	text-align: center;
+}
+
+.toader canvas {
+	margin-left: auto !important;
+	margin-right: auto !important;
 }
