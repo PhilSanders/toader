@@ -6,12 +6,12 @@
  */
 
 var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
-	preload: preload,
-	create:  create,
-	createTimer: createTime,
-	updateTimer: updateTime,
-	update:  update,
-	render:  render
+  preload: preload,
+  create:  create,
+  createTimer: createTime,
+  updateTimer: updateTime,
+  update:  update,
+  render:  render
 });
 
 //  Set globals
