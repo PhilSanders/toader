@@ -1,6 +1,7 @@
 var gulp = require('gulp'),
-	webserver = require('gulp-webserver'),
-	useref = require('gulp-useref');
+    del = require('del'),
+    webserver = require('gulp-webserver'),
+    useref = require('gulp-useref');
 
 gulp.task('webserver', function() {
   gulp.src('.')
@@ -8,12 +9,25 @@ gulp.task('webserver', function() {
       livereload: true,
       directoryListing: false,
       open: true,
-	  fallback: 'index.html'
+    fallback: 'index.html'
     }));
 });
 
-gulp.task('build', function(){
-	return gulp.src('./*.html')
+gulp.task('move-assets', function() {
+  return gulp.src(['assets/**'])
+      .pipe(gulp.dest('dist/assets'))
+});
+
+gulp.task('build', ['clean', 'move'], function(){
+  return gulp.src('./*.html')
         .pipe(useref())
         .pipe(gulp.dest('dist'));
+});
+
+gulp.task('clean', function() {
+  return del(['./dist']);
+});
+
+gulp.task('default', function() {
+  gulp.run('webserver');
 });

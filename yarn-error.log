@@ -1,0 +1,44 @@
+Arguments: 
+  /usr/local/bin/node /usr/local/Cellar/yarn/1.12.3/libexec/bin/yarn.js install
+
+PATH: 
+  /Users/philsanders/.cargo/bin:/home/phil/gems/bin:/usr/bin/svn:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/share/dotnet:/opt/X11/bin:/usr/local/git/bin:/Users/philsanders/Library/Android/sdk/tools:/Users/philsanders/Library/Android/sdk/platforms-tools:/Users/philsanders/Library/Android/sdk/tools/ant
+
+Yarn version: 
+  1.12.3
+
+Node version: 
+  10.11.0
+
+Platform: 
+  darwin x64
+
+Trace: 
+  Error: EACCES: permission denied, mkdir '/Users/philsanders/Sites/toader-p2/node_modules/define-property/node_modules/kind-of'
+
+npm manifest: 
+  {
+    "name": "toader-p2",
+    "version": "2.0.0",
+    "description": "![alt text](http://res.cloudinary.com/sourcetoad/image/upload/v1470418197/TOADER-SCREEN_tuyvxd.png \"Toader by Sourcetoad.com\")",
+    "main": "gulpFile.js",
+    "dependencies": {
+      "phaser": "^2.6.1"
+    },
+    "devDependencies": {
+      "gulp": "^3.9.1",
+      "gulp-useref": "^3.1.6",
+      "gulp-webserver": "^0.9.1"
+    },
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Phil Sanders (phil@sourcetoad.com)",
+    "license": "ISC"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
