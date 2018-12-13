@@ -18,7 +18,7 @@ gulp.task('move-assets', function() {
       .pipe(gulp.dest('dist/assets'))
 });
 
-gulp.task('build', ['clean', 'move'], function(){
+gulp.task('build', ['clean', 'move-assets'], function(){
   return gulp.src('./*.html')
         .pipe(useref())
         .pipe(gulp.dest('dist'));

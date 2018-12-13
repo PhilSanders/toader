@@ -10,12 +10,12 @@ Built with Phaser game framework - [Phaser.io](www.http:phaser.io)
 
 ### Run
 
-Run the web server
+Run the web server and play
 
 `$ gulp`
 
 ### Build
 
-Build distribution
+Build to dist folder and share
 
 `$ gulp build`
