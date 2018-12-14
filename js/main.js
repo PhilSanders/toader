@@ -15,19 +15,20 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 });
 
 //  Set globals
-var scale = 1;
-var lives = 3;
-var points = 0;
-var enemyValue = 5;
-var bulletTime = 0;
-var gameTime = 0;
-var playerRespawnTime = 0;
-var playerBounds = new Phaser.Rectangle(280, 180, 240, 235);
-var playerRespawn = false;
-var safeZone = false;
-var gameover = false;
-var debug = true;
-var result = 'You last hit: ';
+var scale = 1,
+    lives = 3,
+    points = 0,
+    enemyValue = 5,
+    bulletTime = 0,
+    gameTime = 0,
+    respawnTime = 200,
+    playerSpeed = 65,
+    playerBounds = new Phaser.Rectangle(280, 180, 240, 235),
+    playerRespawn = false,
+    safeZone = false,
+    gameover = false,
+    debug = true,
+    result = 'You last hit: ';
 
 function preload() {
   game.load.image('map',                'assets/img/map1.01.png');
@@ -70,12 +71,12 @@ function create() {
   game.physics.p2.defaultRestitution = 0.8;
 
   //  Collision Groups
-  var playerCG = game.physics.p2.createCollisionGroup();
-  var weaponCG = game.physics.p2.createCollisionGroup();
-  var enemyCG = game.physics.p2.createCollisionGroup();
+  var playerCG = game.physics.p2.createCollisionGroup(),
+      weaponCG = game.physics.p2.createCollisionGroup(),
+      enemyCG = game.physics.p2.createCollisionGroup();
 
   //  Collide with bounds
-  //game.physics.p2.updateBoundsCollisionGroup();
+  game.physics.p2.updateBoundsCollisionGroup();
 
   //  Add the map background to the scene
   game.add.image(0, 0, 'map');
@@ -153,48 +154,49 @@ function updateTime() {
 }
 
 function update() {
-  var playerSpeed = 65;
   player.body.setZeroVelocity();
 
-  if (cursors.left.isDown) {
-    player.play('left');
-    player.body.moveLeft(playerSpeed);
-    player.body.angle = -90;
-  }
-  else if (cursors.right.isDown) {
-    player.play('right');
-    player.body.moveRight(playerSpeed);
-    player.body.angle = 90;
-  }
-  else if (cursors.up.isDown) {
-    player.play('up');
-    player.body.moveUp(playerSpeed);
-    player.body.angle = 0;
-  }
-  else if (cursors.down.isDown) {
-    player.play('down');
-    player.body.moveDown(playerSpeed);
-    player.body.angle = -180;
-  }
-  else {
-    if (!isOdd(player.animations.currentAnim.frame)) {
-      player.animations.stop();
+  if (!safeZone) {
+    if (cursors.left.isDown) {
+      if (player.x > 300) { // player left bounds
+        player.play('left');
+        player.body.moveLeft(playerSpeed);
+        player.body.angle = -90;
+      }
+    }
+    else if (cursors.right.isDown) {
+      if (player.x < 500) { // player right bounds
+        player.play('right');
+        player.body.moveRight(playerSpeed);
+        player.body.angle = 90;
+      }
+    }
+    else if (cursors.up.isDown) {
+      if (player.y > 200) { // player upper bounds
+        player.play('up');
+        player.body.moveUp(playerSpeed);
+        player.body.angle = 0;
+      }
+    }
+    else if (cursors.down.isDown) {
+      if (player.y < 400) { // player lower bounds
+        player.play('down');
+        player.body.moveDown(playerSpeed);
+        player.body.angle = -180;
+      }
+    }
+    else {
+      stopPlayer()
+    }
+
+    //  Fire Weapon
+    if (fireButton.isDown) {
+      fireBullet();
     }
   }
-
-  //  Firing?
-  if (fireButton.isDown) {
-    fireBullet();
+  else {
+    stopPlayer()
   }
-
- //  Respawn the player after a few seconds
- //respawnPlayer();
-
- //  PLayer hit time after respawn
- //playerHitTimeout()
-
- //  Check if player is inside playBounds
- //stayInBoundingBox(player, playerBounds);
 }
 
 function createPlayer(playerCG, enemyCG) {
@@ -205,7 +207,7 @@ function createPlayer(playerCG, enemyCG) {
   //  Enable player physics
   game.physics.p2.enable(player, debug);
   //  Setup player body
-  player.body.setRectangle(32, 32);
+  player.body.setRectangle(32 * scale, 32 * scale);
   player.body.setZeroDamping();
   player.body.fixedRotation = false;
   player.body.kinematic = false;
@@ -234,7 +236,7 @@ function createEnemy(enemyCG, weaponCG) {
   enemies.createMultiple(30, 'enemy_0');
   enemies.enableBody = true;
   enemies.smoothed = false;
-  //enemies.scale.set(scale);
+  // enemies.scale.set(scale);
   enemies.physicsBodyType = Phaser.Physics.P2JS;
   game.physics.p2.enable(enemies, debug);
   enemies.setAll('anchor.x', 0.5);
@@ -254,7 +256,6 @@ function createEnemy(enemyCG, weaponCG) {
       explode.reset(e.body.x, e.body.y);
       explode.play('explosion', 30, false, true);
       e.kill();
-      //console.log('Kill Enemy');
     });
   });
   return enemies;
@@ -288,7 +289,7 @@ function spawnEnemy(enemies, enemyCG, playerCG, weaponCG, xPos, yPos, direction)
 }
 
 function fireBullet() {
-  if (gameover === false && playerRespawn === false && game.time.now > bulletTime) {
+  if (!gameover && !playerRespawn && game.time.now > bulletTime) {
     //  Grab a bullet from the pool
     bullet = weapon.getFirstExists(false);
 
@@ -318,7 +319,7 @@ function fireBullet() {
         bullet.body.moveRight(400);
       }
 
-      bulletTime = game.time.now + 400;
+      bulletTime = game.time.now + 300;
     }
   }
 }
@@ -328,11 +329,10 @@ function playerStatus(body) {
     player.kill();
   }
   else if (lives > 1) {
+    lives -= 1;
     playerRespawn = true;
     player.kill();
     respawnPlayer();
-    //console.log(lives);
-    //console.log('Kill Player');
   }
   else {
     player.kill();
@@ -342,15 +342,53 @@ function playerStatus(body) {
     gameOverText.anchor.y = 0.5;
   }
 
-  lives -= 1;
+  // Debug onBeginContact bodies
+  if (debug) {
+    if (body) {
+      result = 'You last hit: ' + body.sprite.key;
+    }
+    else {
+      result = 'You last hit: The wall :)';
+    }
+  }
+}
 
-  //  Debug onBeginContact bodies
-  if (body) {
-    result = 'You last hit: ' + body.sprite.key;
+function respawnPlayer() {
+  if (playerRespawn) {
+    playerRespawn = false;
+    safeZone = true;
+
+    game.time.events.add(respawnTime, function() {
+      // player.reset(player.x, player.y); // respawn in place
+      player.reset(game.world.centerX, game.world.centerY); // respawn centered
+      player.body.angle = 0;
+      player.alpha = 0.4;
+
+      game.time.events.add(respawnTime, function() {
+        player.alpha = 0.6;
+
+        game.time.events.add(respawnTime, function() {
+          player.alpha = 0.8;
+
+          game.time.events.add(respawnTime, function() {
+            player.alpha = 1;
+            safeZone = false;
+
+          }, this).autoDestroy = true;
+        }, this).autoDestroy = true;
+      }, this).autoDestroy = true;
+    }, this).autoDestroy = true;
   }
-  else {
-    result = 'You last hit: The wall :)';
+}
+
+function stopPlayer() {
+  if (!isOdd(player.animations.currentAnim.frame)) {
+    player.animations.stop();
   }
+}
+
+function isOdd(n) {
+  return n == parseFloat(n) && !!(n % 2);
 }
 
 function restartGame() {
@@ -360,73 +398,17 @@ function restartGame() {
   game.state.restart();
 }
 
-function respawnPlayer() {
-  if (gameover === false && playerRespawn === true) {
-    playerRespawn = false;
-    safeZone = true;
-    console.log('player respawn time out');
-    game.time.events.add(Phaser.Timer.SECOND + 300, function() {
-      player.reset(game.world.centerX, game.world.centerY);
-      player.alpha = 0.4;
-      //  Start player hit timeout
-      playerHitTimeout();
-      game.time.events.add(Phaser.Timer.SECOND + 300, function() {
-        console.log('player not safe');
-        //player.body.setRectangle(32,32);
-        safeZone = false;
-        player.alpha = 1;
-      }, this).autoDestroy = true;
-    }, this).autoDestroy = true;
-  }
-}
-
-function playerHitTimeout() {
-  game.time.events.add(Phaser.Timer.SECOND, function() {
-    console.log('player safe');
-    //player.body.setRectangle(0,0);
-    player.alpha = 0.8;
-  }, this);
-}
-
-function stayInBoundingBox(player, playerBounds) {
-  //  Rectangle collison
-  var p = playerBounds,
-      tpos = player.body.position,
-      h = player.body.halfHeight,
-      w = player.body.halfWidth,
-      tx1 = tpos.x - w,
-      ty1 = tpos.y - h,
-      tx2 = tpos.x + w,
-      ty2 = tpos.y + h;
-
-  if (tx1 + w < p.x) {
-    tpos.x = p.x + w;
-  }
-  else if (tx2 + w > p.x + p.width) {
-    tpos.x = p.x + p.width - w * 2;
-  }
-  else if (ty1 + h < p.y) {
-    tpos.y = p.y + h;
-  }
-  else if (ty2 + h > p.y + p.height) {
-    tpos.y = p.y + p.height - h * 2;
-  }
-}
-
-function isOdd(n) {
-  return n == parseFloat(n) && !!(n % 2);
-}
-
 function render() {
   //  Display Lives and Points
   game.debug.text('Lives: ' + lives, 20, 20);
   game.debug.text('Points: ' + points, 130, 20);
-  //game.debug.text('Time: ' + gameTime, 250, 20)
+  // game.debug.text('Time: ' + gameTime, 250, 20)
 
   //  Debug bodies
   if (debug) {
-    game.debug.spriteInfo(player, 32, 650);
-    game.debug.text('Player Anim Frame: ' + player.frame, game.world.centerX + 150, 640);
-    game.debug.text(result, game.world.centerX + 150, 660);
+    game.debug.spriteInfo(player, 20, 500);
+    game.debug.text('Player Anim Frame: ' + player.frame, 20, 50);
+    game.debug.text(result, 20, 70);
+    game.debug.rectangle(playerBounds);
   }
 }
