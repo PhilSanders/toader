@@ -420,26 +420,28 @@ function createTimer() {
 }
 
 function updateTimer() {
-  var currentTime = new Date();
-  var timeDifference = startTime.getTime() - currentTime.getTime();
+  if (!gameover) {
+    var currentTime = new Date();
+    var timeDifference = startTime.getTime() - currentTime.getTime();
 
-  //Time elapsed in seconds
-  timeElapsed = Math.abs(timeDifference / 1000);
+    //Time elapsed in seconds
+    timeElapsed = Math.abs(timeDifference / 1000);
 
-  //Time remaining in seconds
-  var timeRemaining = timeElapsed;
+    //Time remaining in seconds
+    var timeRemaining = timeElapsed;
 
-  //Convert seconds into minutes and seconds
-  var minutes = Math.floor(timeRemaining / 60);
-  var seconds = Math.floor(timeRemaining) - (60 * minutes);
+    //Convert seconds into minutes and seconds
+    var minutes = Math.floor(timeRemaining / 60);
+    var seconds = Math.floor(timeRemaining) - (60 * minutes);
 
-  //Display minutes, add a 0 to the start if less than 10
-  var result = (minutes < 10) ? "0" + minutes : minutes;
+    //Display minutes, add a 0 to the start if less than 10
+    var result = (minutes < 10) ? "0" + minutes : minutes;
 
-  //Display seconds, add a 0 to the start if less than 10
-  result += (seconds < 10) ? ":0" + seconds : ":" + seconds;
+    //Display seconds, add a 0 to the start if less than 10
+    result += (seconds < 10) ? ":0" + seconds : ":" + seconds;
 
-  timeLabel.text = result;
+    timeLabel.text = result;
+  }
 }
 
 function isOdd(n) {
