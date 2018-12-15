@@ -21,7 +21,7 @@ var scale = 1,
     playerSpeed = 65,
     playerRespawning = false,
     playerRespawnTime = 1200,
-    enemyCount = 10,
+    enemyCount = 6,
     enemyPointsValue = 5,
     enemySpeed = 150,
     enemyLeft = [0, 350],
@@ -83,6 +83,16 @@ function create() {
 
   //  Make Enemies
   createEnemy(enemyCG, weaponCG);
+
+  startTime = new Date();
+  totalTime = 120;
+  timeElapsed = 0;
+
+  createTimer();
+
+  gameTimer = game.time.events.loop(100, function(){
+      updateTimer();
+  });
 
   //  Weapon group
   weapon = game.add.group();
@@ -211,7 +221,7 @@ function createPlayer(playerCG, enemyCG, powerCG) {
   game.physics.p2.enable(player, debug);
 
   //  Setup player body
-  player.body.setRectangle(32 * scale, 32 * scale);
+  player.body.setCircle(16);
   player.body.setZeroDamping();
   player.body.fixedRotation = false;
   player.body.kinematic = false;
@@ -252,6 +262,7 @@ function createEnemy(enemyCG, weaponCG) {
     var newEnemy = 'enemy_' + game.rnd.integerInRange(0, 6);
 
     e.loadTexture(newEnemy, 0, false);
+    e.body.setRectangle(90, 40);
     e.body.setCollisionGroup(enemyCG);
     e.body.fixedRotation = false;
     e.body.kinematic = true;
@@ -377,6 +388,7 @@ function respawnPlayer() {
       player.reset(game.world.centerX, game.world.centerY); // respawn centered
       player.body.angle = 0;
       player.alpha = 0.4;
+      player.scale.set(1);
 
       game.time.events.add(playerRespawnTime / 4, function() {
         player.alpha = 0.6;
@@ -399,6 +411,35 @@ function stopPlayer() {
   if (!isOdd(player.animations.currentAnim.frame)) {
     player.animations.stop();
   }
+}
+
+function createTimer() {
+  timeLabel = game.add.text(game.world.centerX, 20, "00:00", {font: "20px Arial", fill: "#fff"});
+  timeLabel.anchor.setTo(0.5, 0.5);
+  timeLabel.align = 'center';
+}
+
+function updateTimer() {
+  var currentTime = new Date();
+  var timeDifference = startTime.getTime() - currentTime.getTime();
+
+  //Time elapsed in seconds
+  timeElapsed = Math.abs(timeDifference / 1000);
+
+  //Time remaining in seconds
+  var timeRemaining = timeElapsed;
+
+  //Convert seconds into minutes and seconds
+  var minutes = Math.floor(timeRemaining / 60);
+  var seconds = Math.floor(timeRemaining) - (60 * minutes);
+
+  //Display minutes, add a 0 to the start if less than 10
+  var result = (minutes < 10) ? "0" + minutes : minutes;
+
+  //Display seconds, add a 0 to the start if less than 10
+  result += (seconds < 10) ? ":0" + seconds : ":" + seconds;
+
+  timeLabel.text = result;
 }
 
 function isOdd(n) {
