@@ -16,16 +16,21 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
 var scale = 1,
     lives = 3,
     points = 0,
-    enemyValue = 5,
     bulletTime = 0,
     gameTime = 0,
     playerSpeed = 65,
-    // playerBounds = new Phaser.Rectangle(280, 180, 240, 235),
     playerRespawning = false,
     playerRespawnTime = 1200,
+    enemyCount = 10,
+    enemyPointsValue = 5,
+    enemySpeed = 150,
+    enemyLeft = [0, 350],
+    enemyRight = [820, 250],
+    enemyTop = [350, 0],
+    enemyBottom = [450, 600],
     gameover = false,
     debug = false,
-    debugHitResult = 'You last hit: ';
+    debugHitResult = '';
 
 function preload() {
   game.load.image('map',                'assets/img/map1.01.png');
@@ -55,7 +60,7 @@ function create() {
   //  Enable P2JS Physics
   game.physics.startSystem(Phaser.Physics.P2JS);
 
-  //  Turn on impact events for the world, without this we get no collision callbacks
+  //  Turn on impact events for the world
   game.physics.p2.setImpactEvents(true);
 
   //  Make things a bit more bouncey
@@ -73,11 +78,11 @@ function create() {
   //  Add the map background to the scene
   game.add.image(0, 0, 'map');
 
-  //  Add player
-  var player = createPlayer(playerCG, enemyCG, powerCG);
+  //  Make Player
+  createPlayer(playerCG, enemyCG, powerCG);
 
-  //  Add enemy
-  var enemies = createEnemy(enemyCG, weaponCG);
+  //  Make Enemies
+  createEnemy(enemyCG, weaponCG);
 
   //  Weapon group
   weapon = game.add.group();
@@ -96,7 +101,7 @@ function create() {
     e.body.fixedRotation = false;
     e.body.onBeginContact.add(function() {
       e.kill();
-      // points += enemyValue;
+      // points += enemyPointsValue;
     }, this);
   });
 
@@ -127,22 +132,22 @@ function create() {
     e.animations.add('power_pellet');
     e.body.onBeginContact.add(function() {
       e.kill();
-      points += enemyValue;
+      points += enemyPointsValue;
     }, this);
   });
 
   //  Spawn enemies
   game.time.events.loop(Phaser.Timer.SECOND * 3.2, function() {
-    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, 820, 250, 'left');
+    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, enemyRight[0], enemyRight[1], 'left', enemySpeed);
   }, this);
   game.time.events.loop(Phaser.Timer.SECOND * 4.2, function() {
-    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, 0, 350, 'right');
+    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, enemyLeft[0], enemyLeft[1], 'right', enemySpeed);
   }, this);
   game.time.events.loop(Phaser.Timer.SECOND * 4, function() {
-    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, 450, 600, 'up');
+    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, enemyBottom[0], enemyBottom[1], 'up', enemySpeed);
   }, this);
   game.time.events.loop(Phaser.Timer.SECOND * 3.2, function() {
-    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, 350, 0, 'down');
+    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, enemyTop[0], enemyTop[1], 'down', enemySpeed);
   }, this);
 
   //  Setup input
@@ -232,7 +237,7 @@ function createPlayer(playerCG, enemyCG, powerCG) {
 
 function createEnemy(enemyCG, weaponCG) {
   enemies = game.add.group();
-  enemies.createMultiple(30, 'enemy_0');
+  enemies.createMultiple(enemyCount, 'enemy_0');
   enemies.enableBody = true;
   enemies.smoothed = false;
   // enemies.scale.set(scale);
@@ -261,7 +266,7 @@ function createEnemy(enemyCG, weaponCG) {
       var power = power_pellets.getFirstExists(false);
       power.reset(e.body.x, e.body.y);
       power.play('power_pellet', 30, true);
-      game.time.events.add(4800, function() {
+      game.time.events.add(Phaser.Timer.SECOND + 4800, function() {
         power.kill();
       });
     });
@@ -270,29 +275,31 @@ function createEnemy(enemyCG, weaponCG) {
   return enemies;
 }
 
-function spawnEnemy(enemies, enemyCG, playerCG, weaponCG, xPos, yPos, direction) {
-  var enemy = enemies.getFirstExists(false),
-      speed = 150;
-      enemy.reset(xPos, yPos);
-      enemy.body.collides([enemyCG, playerCG, weaponCG]);
+function spawnEnemy(enemies, enemyCG, playerCG, weaponCG, xPos, yPos, direction, speed) {
+  var enemy = enemies.getFirstExists(false);
 
-  switch (direction) {
-    case 'left':
-      enemy.body.angle = 0;
-      enemy.body.moveLeft(speed);
-      break;
-    case 'right':
-      enemy.body.angle = -180;
-      enemy.body.moveRight(speed);
-      break;
-    case 'up':
-      enemy.body.angle = 90;
-      enemy.body.moveUp(speed);
-      break;
-    case 'down':
-      enemy.body.angle = -90;
-      enemy.body.moveDown(speed);
-      break;
+  if (enemy) {
+    enemy.reset(xPos, yPos);
+    enemy.body.collides([enemyCG, playerCG, weaponCG]);
+
+    switch (direction) {
+      case 'left':
+        enemy.body.angle = 0;
+        enemy.body.moveLeft(speed);
+        break;
+      case 'right':
+        enemy.body.angle = -180;
+        enemy.body.moveRight(speed);
+        break;
+      case 'up':
+        enemy.body.angle = 90;
+        enemy.body.moveUp(speed);
+        break;
+      case 'down':
+        enemy.body.angle = -90;
+        enemy.body.moveDown(speed);
+        break;
+    }
   }
 }
 
@@ -416,6 +423,5 @@ function render() {
     game.debug.spriteInfo(player, 20, 500);
     game.debug.text('Player Anim Frame: ' + player.frame, 20, 50);
     game.debug.text(debugHitResult, 20, 70);
-    // game.debug.rectangle(playerBounds);
   }
 }
