@@ -21,8 +21,8 @@ var scale = 1,
     playerSpeed = 65,
     playerRespawning = false,
     playerRespawnTime = 1200,
-    enemyCount = 6,
-    enemyPointsValue = 5,
+    enemyCount = 5,
+    enemyPointsValue = 50,
     enemySpeed = 150,
     enemyLeft = [0, 350],
     enemyRight = [820, 250],
@@ -44,7 +44,8 @@ function preload() {
   game.load.image('enemy_5',            'assets/img/car_purple.png');
   game.load.image('enemy_6',            'assets/img/car_pink.png');
   game.load.image('bullet',             'assets/img/bullet.png');
-  game.load.spritesheet('power_pellet', 'assets/img/power_pellet.png', 16, 16, 4);
+  game.load.spritesheet('point_coin',   'assets/img/point_coin.png', 32, 32, 4);
+  game.load.spritesheet('power_pellet', 'assets/img/power_pellet.png', 32, 32, 4);
   game.load.spritesheet('explosion',    'assets/img/explosion1.png', 142, 200, 16);
   game.load.image('gameover',           'assets/img/gameover.png');
 }
@@ -125,21 +126,21 @@ function create() {
   });
 
   // Power Pellets group
-  power_pellets = game.add.group();
-  power_pellets.createMultiple(100, 'power_pellet');
-  power_pellets.enableBody = false;
-  power_pellets.physicsBodyType = Phaser.Physics.P2JS;
-  game.physics.p2.enable(power_pellets, debug);
-  power_pellets.setAll('anchor.x', 0.5);
-  power_pellets.setAll('anchor.y', 0.5);
-  power_pellets.forEach(function(e) {
-    e.body.setCircle(8);
+  point_coins = game.add.group();
+  point_coins.createMultiple(100, 'point_coin');
+  point_coins.enableBody = false;
+  point_coins.physicsBodyType = Phaser.Physics.P2JS;
+  game.physics.p2.enable(point_coins, debug);
+  point_coins.setAll('anchor.x', 0.5);
+  point_coins.setAll('anchor.y', 0.5);
+  point_coins.forEach(function(e) {
+    e.body.setCircle(14);
     e.body.setCollisionGroup(powerCG);
     e.body.collides(playerCG);
     // e.scale.set(scale);
     e.body.data.shapes[0].sensor = true;
     e.body.kinematic = false;
-    e.animations.add('power_pellet');
+    e.animations.add('point_coin');
     e.body.onBeginContact.add(function() {
       e.kill();
       points += enemyPointsValue;
@@ -267,18 +268,19 @@ function createEnemy(enemyCG, weaponCG) {
     e.body.fixedRotation = false;
     e.body.kinematic = true;
     e.body.collides(weaponCG, function() {
-      // explode on colision
+      e.kill();
+      // explode on kill
       var explode = explosions.getFirstExists(false);
       explode.reset(e.body.x, e.body.y);
       explode.play('explosion', 30, false, true);
-      e.kill();
 
-      // leave power pellete on colision
-      var power = power_pellets.getFirstExists(false);
-      power.reset(e.body.x, e.body.y);
-      power.play('power_pellet', 30, true);
+      // leave a power pellet on colision
+      var point = point_coins.getFirstExists(false);
+      point.reset(e.body.x, e.body.y);
+      point.play('point_coin', 16, true);
+
       game.time.events.add(Phaser.Timer.SECOND + 4800, function() {
-        power.kill();
+        point.kill();
       });
     });
   });
@@ -351,7 +353,7 @@ function fireBullet() {
 }
 
 function updatePlayerStatus(body) {
-  if (body && body.sprite.key !== 'power_pellet') {
+  if (body && body.sprite.key !== 'point_coin') {
     if (gameover === true) {
       player.kill();
     }
