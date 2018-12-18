@@ -5,468 +5,453 @@
  * Web: http://www.sourcetoad.com/
  */
 
-var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'toader', {
-  preload:      preload,
-  create:       create,
-  update:       update,
-  render:       render
-});
+var toader = {
+  preload: function() {
+    game.load.image('map',                'assets/img/map1.01.png');
+    game.load.image('player',             'assets/img/toad.png');
+    game.load.spritesheet('player_anim',  'assets/img/toad_anim.png', 40, 40);
+    game.load.image('enemy_0',            'assets/img/car_white.png');
+    game.load.image('enemy_1',            'assets/img/car_red.png');
+    game.load.image('enemy_2',            'assets/img/car_blue.png');
+    game.load.image('enemy_3',            'assets/img/car_yellow.png');
+    game.load.image('enemy_4',            'assets/img/car_green.png');
+    game.load.image('enemy_5',            'assets/img/car_purple.png');
+    game.load.image('enemy_6',            'assets/img/car_pink.png');
+    game.load.image('bullet',             'assets/img/bullet.png');
+    game.load.spritesheet('point_coin',   'assets/img/point_coin.png', 32, 32, 4);
+    game.load.spritesheet('power_pellet', 'assets/img/power_pellet.png', 32, 32, 4);
+    game.load.spritesheet('explosion',    'assets/img/explosion1.png', 142, 200, 16);
+    game.load.image('gameover',           'assets/img/gameover.png');
+  },
+  create: function() {
+    //  Setup input
+    this.cursors = game.input.keyboard.createCursorKeys();
+    this.fireButton = this.input.keyboard.addKey(Phaser.KeyCode.SPACEBAR);
 
-//  Set globals
-var scale = 1,
-    lives = 3,
-    points = 0,
-    bulletTime = 0,
-    gameTime = 0,
-    playerSpeed = 65,
-    playerRespawning = false,
-    playerRespawnTime = 1200,
-    enemyCount = 5,
-    enemyPointsValue = 50,
-    enemySpeed = 150,
-    enemyLeft = [0, 350],
-    enemyRight = [820, 250],
-    enemyTop = [350, 0],
-    enemyBottom = [450, 600],
-    gameover = false,
-    debug = false,
-    debugHitResult = '';
+    //  Scale game
+    game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 
-function preload() {
-  game.load.image('map',                'assets/img/map1.01.png');
-  game.load.image('player',             'assets/img/toad.png');
-  game.load.spritesheet('player_anim',  'assets/img/toad_anim.png', 40, 40);
-  game.load.image('enemy_0',            'assets/img/car_white.png');
-  game.load.image('enemy_1',            'assets/img/car_red.png');
-  game.load.image('enemy_2',            'assets/img/car_blue.png');
-  game.load.image('enemy_3',            'assets/img/car_yellow.png');
-  game.load.image('enemy_4',            'assets/img/car_green.png');
-  game.load.image('enemy_5',            'assets/img/car_purple.png');
-  game.load.image('enemy_6',            'assets/img/car_pink.png');
-  game.load.image('bullet',             'assets/img/bullet.png');
-  game.load.spritesheet('point_coin',   'assets/img/point_coin.png', 32, 32, 4);
-  game.load.spritesheet('power_pellet', 'assets/img/power_pellet.png', 32, 32, 4);
-  game.load.spritesheet('explosion',    'assets/img/explosion1.png', 142, 200, 16);
-  game.load.image('gameover',           'assets/img/gameover.png');
-}
+    //  Center game
+    game.scale.pageAlignHorizontally = true;
+    game.scale.pageAlignVeritcally = true;
 
-function create() {
-  //  Scale game
-  game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    //  Enable P2JS Physics
+    game.physics.startSystem(Phaser.Physics.P2JS);
 
-  //  Center game
-  game.scale.pageAlignHorizontally = true;
-  game.scale.pageAlignVeritcally = true;
+    //  Turn on impact events for the world
+    game.physics.p2.setImpactEvents(true);
 
-  //  Enable P2JS Physics
-  game.physics.startSystem(Phaser.Physics.P2JS);
+    //  Make things a bit more bouncey
+    game.physics.p2.defaultRestitution = 0.8;
 
-  //  Turn on impact events for the world
-  game.physics.p2.setImpactEvents(true);
+    //  Collision Groups
+    this.playerCG = game.physics.p2.createCollisionGroup();
+    this.weaponCG = game.physics.p2.createCollisionGroup();
+    this.enemyCG = game.physics.p2.createCollisionGroup();
+    this.powerCG = game.physics.p2.createCollisionGroup();
 
-  //  Make things a bit more bouncey
-  game.physics.p2.defaultRestitution = 0.8;
+    //  Collide with bounds
+    game.physics.p2.updateBoundsCollisionGroup();
 
-  //  Collision Groups
-  var playerCG = game.physics.p2.createCollisionGroup(),
-      weaponCG = game.physics.p2.createCollisionGroup(),
-      enemyCG = game.physics.p2.createCollisionGroup(),
-      powerCG = game.physics.p2.createCollisionGroup();
+    //  Add the map background to the scene
+    game.add.image(0, 0, 'map');
 
-  //  Collide with bounds
-  game.physics.p2.updateBoundsCollisionGroup();
+    //  Game Defaults
+    this.scale = 1;
+    this.lives = 3;
+    this.points = 0;
+    this.bulletTime = 0;
+    this.gameTime = 0;
+    this.playerSpeed = 65;
+    this.playerRespawning = false;
+    this.playerRespawnTime = 1200;
+    this.enemyCount = 5;
+    this.enemyPointsValue = 50;
+    this.enemySpeed = 150;
+    this.enemyLeft = [0, 350];
+    this.enemyRight = [820, 250];
+    this.enemyTop = [350, 0];
+    this.enemyBottom = [450, 600];
+    this.gameover = false;
+    this.debug = false;
+    this.debugHitResult = '';
 
-  //  Add the map background to the scene
-  game.add.image(0, 0, 'map');
+    this.createPlayer();
 
-  //  Make Player
-  createPlayer(playerCG, enemyCG, powerCG);
+    this.createEnemy();
 
-  //  Make Enemies
-  createEnemy(enemyCG, weaponCG);
+    this.createTimer();
 
-  startTime = new Date();
-  totalTime = 120;
-  timeElapsed = 0;
-
-  createTimer();
-
-  gameTimer = game.time.events.loop(100, function(){
-      updateTimer();
-  });
-
-  //  Weapon group
-  weapon = game.add.group();
-  weapon.createMultiple(10, 'bullet');
-  weapon.enableBody = true;
-  weapon.physicsBodyType = Phaser.Physics.P2JS;
-  game.physics.p2.enable(weapon, debug);
-  weapon.setAll('anchor.x', 0.5);
-  weapon.setAll('anchor.y', 0.5);
-  weapon.setAll('outOfBoundsKill', true);
-  weapon.setAll('checkWorldBounds', true);
-  weapon.forEach(function(e) {
-    e.body.setCollisionGroup(weaponCG);
-    e.body.collides(enemyCG);
-    e.scale.set(scale);
-    e.body.fixedRotation = false;
-    e.body.onBeginContact.add(function() {
-      e.kill();
-      // points += enemyPointsValue;
+    this.gameTimer = game.time.events.loop(100, function(){
+        this.updateTimer();
     }, this);
-  });
 
-  //  Explosion group
-  explosions = game.add.group();
-  explosions.createMultiple(30, 'explosion');
-  explosions.setAll('anchor.x', 0.5);
-  explosions.setAll('anchor.y', 0.5);
-  explosions.forEach(function(e) {
-    e.animations.add('explosion');
-  });
+    this.createWeapon();
 
-  // Power Pellets group
-  point_coins = game.add.group();
-  point_coins.createMultiple(100, 'point_coin');
-  point_coins.enableBody = false;
-  point_coins.physicsBodyType = Phaser.Physics.P2JS;
-  game.physics.p2.enable(point_coins, debug);
-  point_coins.setAll('anchor.x', 0.5);
-  point_coins.setAll('anchor.y', 0.5);
-  point_coins.forEach(function(e) {
-    e.body.setCircle(14);
-    e.body.setCollisionGroup(powerCG);
-    e.body.collides(playerCG);
-    // e.scale.set(scale);
-    e.body.data.shapes[0].sensor = true;
-    e.body.kinematic = false;
-    e.animations.add('point_coin');
-    e.body.onBeginContact.add(function() {
-      e.kill();
-      points += enemyPointsValue;
+    //  Spawn enemies
+    game.time.events.loop(Phaser.Timer.SECOND * 3.2, function() {
+      this.spawnEnemy(this.enemyRight[0], this.enemyRight[1], 'left');
     }, this);
-  });
+    game.time.events.loop(Phaser.Timer.SECOND * 4.2, function() {
+      this.spawnEnemy(this.enemyLeft[0], this.enemyLeft[1], 'right');
+    }, this);
+    game.time.events.loop(Phaser.Timer.SECOND * 4, function() {
+      this.spawnEnemy(this.enemyBottom[0], this.enemyBottom[1], 'up');
+    }, this);
+    game.time.events.loop(Phaser.Timer.SECOND * 3.2, function() {
+      this.spawnEnemy(this.enemyTop[0], this.enemyTop[1], 'down');
+    }, this);
+  },
+  update: function () {
+    this.player.body.setZeroVelocity();
 
-  //  Spawn enemies
-  game.time.events.loop(Phaser.Timer.SECOND * 3.2, function() {
-    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, enemyRight[0], enemyRight[1], 'left', enemySpeed);
-  }, this);
-  game.time.events.loop(Phaser.Timer.SECOND * 4.2, function() {
-    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, enemyLeft[0], enemyLeft[1], 'right', enemySpeed);
-  }, this);
-  game.time.events.loop(Phaser.Timer.SECOND * 4, function() {
-    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, enemyBottom[0], enemyBottom[1], 'up', enemySpeed);
-  }, this);
-  game.time.events.loop(Phaser.Timer.SECOND * 3.2, function() {
-    spawnEnemy(enemies, enemyCG, playerCG, weaponCG, enemyTop[0], enemyTop[1], 'down', enemySpeed);
-  }, this);
+    // if (this.points >= 1000) {
+    //   this.player.scale.set(2);
+    // }
 
-  //  Setup input
-  cursors = game.input.keyboard.createCursorKeys();
-  fireButton = this.input.keyboard.addKey(Phaser.KeyCode.SPACEBAR);
-
-}
-
-function update() {
-  player.body.setZeroVelocity();
-
-  if (!playerRespawning) {
-    if (cursors.left.isDown) {
-      // if (player.x > 300) { // player left bounds
-        player.play('left');
-        player.body.moveLeft(playerSpeed);
-        player.body.angle = -90;
-      // }
-    }
-    else if (cursors.right.isDown) {
-      // if (player.x < 500) { // player right bounds
-        player.play('right');
-        player.body.moveRight(playerSpeed);
-        player.body.angle = 90;
-      // }
-    }
-    else if (cursors.up.isDown) {
-      // if (player.y > 200) { // player upper bounds
-        player.play('up');
-        player.body.moveUp(playerSpeed);
-        player.body.angle = 0;
-      // }
-    }
-    else if (cursors.down.isDown) {
-      // if (player.y < 400) { // player lower bounds
-        player.play('down');
-        player.body.moveDown(playerSpeed);
-        player.body.angle = -180;
-      // }
-    }
-    else {
-      stopPlayer()
-    }
-
-    //  Fire Weapon
-    if (fireButton.isDown) {
-      fireBullet();
-    }
-  }
-  else {
-    stopPlayer()
-  }
-}
-
-function createPlayer(playerCG, enemyCG, powerCG) {
-  player = game.add.sprite(400, 300, 'player_anim');
-  player.smoothed = false;
-  player.scale.set(scale);
-
-  //  Enable player physics
-  game.physics.p2.enable(player, debug);
-
-  //  Setup player body
-  player.body.setCircle(16);
-  player.body.setZeroDamping();
-  player.body.fixedRotation = false;
-  player.body.kinematic = false;
-
-  //  Player collision group
-  player.body.setCollisionGroup(playerCG);
-  player.body.collides([enemyCG, powerCG]);
-  player.body.collideWorldBounds = true;
-
-  //  Check for the block hitting another object
-  player.body.onBeginContact.add(updatePlayerStatus, this);
-
-  //  Player animations
-  player.animations.add('stand', [0], 1, true);
-  player.animations.add('up', [ 1, 0, 0 ], 10, true);
-  player.animations.add('down', [ 5, 4, 4 ], 10, true);
-  playerLeft = player.animations.add('left', [ 3, 2, 2 ], 10, true);
-  playerRight = player.animations.add('right', [ 7, 6, 6 ], 10, true);
-
-  playerLeft.enableUpdate = true;
-  playerRight.enableUpdate = true;
-}
-
-function createEnemy(enemyCG, weaponCG) {
-  enemies = game.add.group();
-  enemies.createMultiple(enemyCount, 'enemy_0');
-  enemies.enableBody = true;
-  enemies.smoothed = false;
-  // enemies.scale.set(scale);
-  enemies.physicsBodyType = Phaser.Physics.P2JS;
-  game.physics.p2.enable(enemies, debug);
-  enemies.setAll('anchor.x', 0.5);
-  enemies.setAll('anchor.y', 0.5);
-  enemies.setAll('checkWorldBounds', true);
-  enemies.setAll('outOfBoundsKill', true);
-  enemies.forEach(function(e) {
-    // randomize textures
-    var newEnemy = 'enemy_' + game.rnd.integerInRange(0, 6);
-
-    e.loadTexture(newEnemy, 0, false);
-    e.body.setRectangle(90, 40);
-    e.body.setCollisionGroup(enemyCG);
-    e.body.fixedRotation = false;
-    e.body.kinematic = true;
-    e.body.collides(weaponCG, function() {
-      e.kill();
-      // explode on kill
-      var explode = explosions.getFirstExists(false);
-      explode.reset(e.body.x, e.body.y);
-      explode.play('explosion', 30, false, true);
-
-      // leave a power pellet on colision
-      var point = point_coins.getFirstExists(false);
-      point.reset(e.body.x, e.body.y);
-      point.play('point_coin', 16, true);
-
-      game.time.events.add(Phaser.Timer.SECOND + 4800, function() {
-        point.kill();
-      });
-    });
-  });
-
-  return enemies;
-}
-
-function spawnEnemy(enemies, enemyCG, playerCG, weaponCG, xPos, yPos, direction, speed) {
-  var enemy = enemies.getFirstExists(false);
-
-  if (enemy) {
-    enemy.reset(xPos, yPos);
-    enemy.body.collides([enemyCG, playerCG, weaponCG]);
-
-    switch (direction) {
-      case 'left':
-        enemy.body.angle = 0;
-        enemy.body.moveLeft(speed);
-        break;
-      case 'right':
-        enemy.body.angle = -180;
-        enemy.body.moveRight(speed);
-        break;
-      case 'up':
-        enemy.body.angle = 90;
-        enemy.body.moveUp(speed);
-        break;
-      case 'down':
-        enemy.body.angle = -90;
-        enemy.body.moveDown(speed);
-        break;
-    }
-  }
-}
-
-function fireBullet() {
-  if (!gameover && !playerRespawning && game.time.now > bulletTime) {
-    //  Grab a bullet from the pool
-    var bullet = weapon.getFirstExists(false);
-
-    if (bullet) {
-      var angle = player.body.angle;
-
-      switch (angle) {
-        case 0:
-          bullet.reset(player.x, player.y - 15);
-          bullet.body.angle = player.body.angle;
-          bullet.body.moveUp(400);
-          break;
-        case -180:
-          bullet.reset(player.x, player.y + 15);
-          bullet.body.angle = player.body.angle;
-          bullet.body.moveDown(400);
-          break;
-        case -90:
-          bullet.reset(player.x - 15, player.y);
-          bullet.body.angle = player.body.angle;
-          bullet.body.moveLeft(400);
-          break;
-        case 90:
-          bullet.reset(player.x + 15, player.y);
-          bullet.body.angle = player.body.angle;
-          bullet.body.moveRight(400);
-          break;
+    if (!this.playerRespawning) {
+      if (this.cursors.left.isDown) {
+        // if (player.x > 300) { // player left bounds
+          this.player.play('left');
+          this.player.body.moveLeft(this.playerSpeed);
+          this.player.body.angle = -90;
+        // }
       }
-
-      bulletTime = game.time.now + 300;
-    }
-  }
-}
-
-function updatePlayerStatus(body) {
-  if (body && body.sprite.key !== 'point_coin') {
-    if (gameover === true) {
-      player.kill();
-    }
-    else if (lives > 1) {
-      lives -= 1;
-      playerRespawning = true;
-      player.kill();
-      respawnPlayer();
-    }
-    else {
-      player.kill();
-      gameover = true;
-      gameOverText = game.add.button(game.world.centerX, game.world.centerY, 'gameover', restartGame, this, 2, 1, 0);
-      gameOverText.anchor.x = 0.5;
-      gameOverText.anchor.y = 0.5;
-    }
-
-    // Debug onBeginContact bodies
-    if (debug) {
-      if (body) {
-        debugHitResult = 'You last hit: ' + body.sprite.key;
+      else if (this.cursors.right.isDown) {
+        // if (player.x < 500) { // player right bounds
+          this.player.play('right');
+          this.player.body.moveRight(this.playerSpeed);
+          this.player.body.angle = 90;
+        // }
+      }
+      else if (this.cursors.up.isDown) {
+        // if (player.y > 200) { // player upper bounds
+          this.player.play('up');
+          this.player.body.moveUp(this.playerSpeed);
+          this.player.body.angle = 0;
+        // }
+      }
+      else if (this.cursors.down.isDown) {
+        // if (player.y < 400) { // player lower bounds
+          this.player.play('down');
+          this.player.body.moveDown(this.playerSpeed);
+          this.player.body.angle = -180;
+        // }
       }
       else {
-        debugHitResult = 'You last hit: The wall :)';
+        this.stopPlayerAnim()
+      }
+
+      //  Fire Weapon
+      if (this.fireButton.isDown) {
+        this.fireWeapon();
       }
     }
-  }
-}
+    else {
+      this.stopPlayerAnim()
+    }
+  },
+  createPlayer: function() {
+    this.player = game.add.sprite(400, 300, 'player_anim');
+    this.player.smoothed = false;
+    this.player.scale.set(this.scale);
 
-function respawnPlayer() {
-  if (playerRespawning) {
-    game.time.events.add(playerRespawnTime / 4, function() {
-      // player.reset(player.x, player.y); // respawn in place
-      player.reset(game.world.centerX, game.world.centerY); // respawn centered
-      player.body.angle = 0;
-      player.alpha = 0.4;
-      player.scale.set(1);
+    //  Enable player physics
+    game.physics.p2.enable(this.player, this.debug);
 
-      game.time.events.add(playerRespawnTime / 4, function() {
-        player.alpha = 0.6;
+    //  Setup player body
+    this.player.body.setCircle(18);
+    this.player.body.setZeroDamping();
+    this.player.body.fixedRotation = false;
+    this.player.body.kinematic = false;
 
-        game.time.events.add(playerRespawnTime / 4, function() {
-          player.alpha = 0.8;
+    //  Player collision group
+    this.player.body.setCollisionGroup(this.playerCG);
+    this.player.body.collides([this.enemyCG, this.powerCG]);
+    this.player.body.collideWorldBounds = true;
 
-          game.time.events.add(playerRespawnTime / 4, function() {
-            player.alpha = 1;
-            playerRespawning = false;
+    //  Check for the block hitting another object
+    this.player.body.onBeginContact.add(this.updatePlayerStatus, this);
 
+    //  Player animations
+    this.player.animations.add('stand', [0], 1, true);
+    this.player.animations.add('up', [ 1, 0, 0 ], 10, true);
+    this.player.animations.add('down', [ 5, 4, 4 ], 10, true);
+    this.playerLeft = this.player.animations.add('left', [ 3, 2, 2 ], 10, true);
+    this.playerRight = this.player.animations.add('right', [ 7, 6, 6 ], 10, true);
+
+    this.playerLeft.enableUpdate = true;
+    this.playerRight.enableUpdate = true;
+  },
+  createWeapon: function() {
+    //  Weapon group
+    this.weapon = game.add.group();
+    this.weapon.createMultiple(10, 'bullet');
+    this.weapon.enableBody = true;
+    this.weapon.physicsBodyType = Phaser.Physics.P2JS;
+    game.physics.p2.enable(this.weapon, this.debug);
+    this.weapon.setAll('anchor.x', 0.5);
+    this.weapon.setAll('anchor.y', 0.5);
+    this.weapon.setAll('outOfBoundsKill', true);
+    this.weapon.setAll('checkWorldBounds', true);
+    this.weapon.forEach(function(e) {
+      e.body.setCollisionGroup(this.weaponCG);
+      e.body.collides(this.enemyCG);
+      e.scale.set(this.scale);
+      e.body.fixedRotation = false;
+      e.body.onBeginContact.add(function() {
+        e.kill();
+      }, this);
+    }, this);
+  },
+  createEnemy: function() {
+    this.enemies = game.add.group();
+    this.enemies.createMultiple(this.enemyCount, 'enemy_0');
+    this.enemies.enableBody = true;
+    this.enemies.smoothed = false;
+    // enemies.scale.set(scale);
+    this.enemies.physicsBodyType = Phaser.Physics.P2JS;
+    game.physics.p2.enable(this.enemies, this.debug);
+    this.enemies.setAll('anchor.x', 0.5);
+    this.enemies.setAll('anchor.y', 0.5);
+    this.enemies.setAll('checkWorldBounds', true);
+    this.enemies.setAll('outOfBoundsKill', true);
+    this.enemies.forEach(function(e) {
+      // randomize textures
+      var newEnemy = 'enemy_' + game.rnd.integerInRange(0, 6);
+
+      e.loadTexture(newEnemy, 0, false);
+      e.body.setRectangle(90, 40);
+      e.body.setCollisionGroup(this.enemyCG);
+      e.body.fixedRotation = false;
+      e.body.kinematic = true;
+      e.body.collides(this.weaponCG, function() {
+        e.kill();
+        // explode on kill
+        var explode = this.explosions.getFirstExists(false);
+        explode.reset(e.body.x, e.body.y);
+        explode.play('explosion', 30, false, true);
+
+        // leave a power pellet on colision
+        var point = this.point_coins.getFirstExists(false);
+        point.reset(e.body.x, e.body.y);
+        point.play('point_coin', 16, true);
+
+        game.time.events.add(Phaser.Timer.SECOND + 4000, function() {
+          point.kill();
+        });
+      }, this);
+    }, this);
+
+    //  Explosion group
+    this.explosions = game.add.group();
+    this.explosions.createMultiple(30, 'explosion');
+    this.explosions.setAll('anchor.x', 0.5);
+    this.explosions.setAll('anchor.y', 0.5);
+    this.explosions.forEach(function(e) {
+      e.animations.add('explosion');
+    });
+
+    // Power Pellets group
+    this.point_coins = game.add.group();
+    this.point_coins.createMultiple(100, 'point_coin');
+    this.point_coins.enableBody = false;
+    this.point_coins.physicsBodyType = Phaser.Physics.P2JS;
+    game.physics.p2.enable(this.point_coins, this.debug);
+    this.point_coins.setAll('anchor.x', 0.5);
+    this.point_coins.setAll('anchor.y', 0.5);
+    this.point_coins.forEach(function(e) {
+      e.body.setCircle(14);
+      e.body.setCollisionGroup(this.powerCG);
+      e.body.collides(this.playerCG);
+      // e.scale.set(scale);
+      e.body.data.shapes[0].sensor = true;
+      e.body.kinematic = false;
+      e.animations.add('point_coin');
+      e.body.onBeginContact.add(function() {
+        e.kill();
+        this.points += this.enemyPointsValue;
+      }, this);
+    }, this);
+  },
+  spawnEnemy: function(xPos, yPos, direction) {
+    var enemy = this.enemies.getFirstExists(false);
+
+    if (enemy) {
+      enemy.reset(xPos, yPos);
+      enemy.body.collides([this.enemyCG, this.playerCG, this.weaponCG]);
+
+      switch (direction) {
+        case 'left':
+          enemy.body.angle = 0;
+          enemy.body.moveLeft(this.enemySpeed);
+          break;
+        case 'right':
+          enemy.body.angle = -180;
+          enemy.body.moveRight(this.enemySpeed);
+          break;
+        case 'up':
+          enemy.body.angle = 90;
+          enemy.body.moveUp(this.enemySpeed);
+          break;
+        case 'down':
+          enemy.body.angle = -90;
+          enemy.body.moveDown(this.enemySpeed);
+          break;
+      }
+    }
+  },
+  fireWeapon: function() {
+    if (!this.gameover && !this.playerRespawning && game.time.now > this.bulletTime) {
+      //  Grab a bullet from the pool
+      var bullet = this.weapon.getFirstExists(false);
+
+      if (bullet) {
+        var angle = this.player.body.angle;
+
+        switch (angle) {
+          case 0:
+            bullet.reset(this.player.x, this.player.y - 15);
+            bullet.body.angle = this.player.body.angle;
+            bullet.body.moveUp(400);
+            break;
+          case -180:
+            bullet.reset(this.player.x, this.player.y + 15);
+            bullet.body.angle = this.player.body.angle;
+            bullet.body.moveDown(400);
+            break;
+          case -90:
+            bullet.reset(this.player.x - 15, this.player.y);
+            bullet.body.angle = this.player.body.angle;
+            bullet.body.moveLeft(400);
+            break;
+          case 90:
+            bullet.reset(this.player.x + 15, this.player.y);
+            bullet.body.angle = this.player.body.angle;
+            bullet.body.moveRight(400);
+            break;
+        }
+
+        this.bulletTime = game.time.now + 300;
+      }
+    }
+  },
+  createTimer: function() {
+    this.startTime = new Date();
+    this.totalTime = 120;
+    this.timeElapsed = 0;
+
+    this.timeLabel = game.add.text(game.world.centerX, 20, "00:00", {font: "20px Arial", fill: "#fff"});
+    this.timeLabel.anchor.setTo(0.5, 0.5);
+    this.timeLabel.align = 'center';
+  },
+  updateTimer: function() {
+    if (!this.gameover) {
+      this.currentTime = new Date();
+      this.timeDifference = this.startTime.getTime() - this.currentTime.getTime();
+
+      //Time elapsed in seconds
+      this.timeElapsed = Math.abs(this.timeDifference / 1000);
+
+      //Time remaining in seconds
+      this.timeRemaining = this.timeElapsed;
+
+      //Convert seconds into minutes and seconds
+      var minutes = Math.floor(this.timeRemaining / 60);
+      var seconds = Math.floor(this.timeRemaining) - (60 * minutes);
+
+      //Display minutes, add a 0 to the start if less than 10
+      var result = (minutes < 10) ? "0" + minutes : minutes;
+
+      //Display seconds, add a 0 to the start if less than 10
+      result += (seconds < 10) ? ":0" + seconds : ":" + seconds;
+
+      this.timeLabel.text = result;
+    }
+  },
+  updatePlayerStatus: function(body) {
+    if (body && body.sprite.key !== 'point_coin') {
+      if (this.gameover === true) {
+        this.player.kill();
+      }
+      else if (this.lives > 1) {
+        this.lives -= 1;
+        this.playerRespawning = true;
+        this.player.kill();
+        this.respawnPlayer();
+      }
+      else {
+        this.player.kill();
+        this.gameover = true;
+        this.gameOverText = game.add.button(game.world.centerX, game.world.centerY, 'gameover', this.restartGame, this, 2, 1, 0);
+        this.gameOverText.anchor.x = 0.5;
+        this.gameOverText.anchor.y = 0.5;
+      }
+
+      // Debug onBeginContact bodies
+      if (this.debug) {
+        if (body) {
+          this.debugHitResult = 'You last hit: ' + body.sprite.key;
+        }
+        else {
+          this.debugHitResult = 'You last hit: The wall :)';
+        }
+      }
+    }
+  },
+  stopPlayerAnim: function() {
+    if (!this.isOddFrameNum(this.player.animations.currentAnim.frame)) {
+      this.player.animations.stop();
+    }
+  },
+  isOddFrameNum: function(n) {
+    return n == parseFloat(n) && !!(n % 2);
+  },
+  respawnPlayer: function() {
+    if (this.playerRespawning) {
+      game.time.events.add(this.playerRespawnTime / 4, function() {
+        // player.reset(player.x, player.y); // respawn in place
+        this.player.reset(game.world.centerX, game.world.centerY); // respawn centered
+        this.player.body.angle = 0;
+        this.player.alpha = 0.4;
+        this.player.scale.set(1);
+
+        game.time.events.add(this.playerRespawnTime / 4, function() {
+          this.player.alpha = 0.6;
+
+          game.time.events.add(this.playerRespawnTime / 4, function() {
+            this.player.alpha = 0.8;
+
+            game.time.events.add(this.playerRespawnTime / 4, function() {
+              this.player.alpha = 1;
+              this.playerRespawning = false;
+
+            }, this).autoDestroy = true;
           }, this).autoDestroy = true;
         }, this).autoDestroy = true;
       }, this).autoDestroy = true;
-    }, this).autoDestroy = true;
+    }
+  },
+  restartGame: function() {
+    this.lives = 3;
+    this.points = 0;
+    this.gameover = false;
+    game.state.restart();
+  },
+  render: function() {
+    //  Display Lives and Points
+    game.debug.text('Lives: ' + this.lives, 20, 20);
+    game.debug.text('Points: ' + this.points, 130, 20);
+
+    //  Debug bodies
+    if (this.debug) {
+      game.debug.spriteInfo(this.player, 20, 500);
+      game.debug.text('Player Anim Frame: ' + this.player.frame, 20, 50);
+      game.debug.text(this.debugHitResult, 20, 70);
+    }
   }
-}
+};
 
-function stopPlayer() {
-  if (!isOdd(player.animations.currentAnim.frame)) {
-    player.animations.stop();
-  }
-}
-
-function createTimer() {
-  timeLabel = game.add.text(game.world.centerX, 20, "00:00", {font: "20px Arial", fill: "#fff"});
-  timeLabel.anchor.setTo(0.5, 0.5);
-  timeLabel.align = 'center';
-}
-
-function updateTimer() {
-  if (!gameover) {
-    var currentTime = new Date();
-    var timeDifference = startTime.getTime() - currentTime.getTime();
-
-    //Time elapsed in seconds
-    timeElapsed = Math.abs(timeDifference / 1000);
-
-    //Time remaining in seconds
-    var timeRemaining = timeElapsed;
-
-    //Convert seconds into minutes and seconds
-    var minutes = Math.floor(timeRemaining / 60);
-    var seconds = Math.floor(timeRemaining) - (60 * minutes);
-
-    //Display minutes, add a 0 to the start if less than 10
-    var result = (minutes < 10) ? "0" + minutes : minutes;
-
-    //Display seconds, add a 0 to the start if less than 10
-    result += (seconds < 10) ? ":0" + seconds : ":" + seconds;
-
-    timeLabel.text = result;
-  }
-}
-
-function isOdd(n) {
-  return n == parseFloat(n) && !!(n % 2);
-}
-
-function restartGame() {
-  lives = 3;
-  points = 0;
-  gameover = false;
-  game.state.restart();
-}
-
-function render() {
-  //  Display Lives and Points
-  game.debug.text('Lives: ' + lives, 20, 20);
-  game.debug.text('Points: ' + points, 130, 20);
-  // game.debug.text('Time: ' + gameTime, 250, 20);
-
-  //  Debug bodies
-  if (debug) {
-    game.debug.spriteInfo(player, 20, 500);
-    game.debug.text('Player Anim Frame: ' + player.frame, 20, 50);
-    game.debug.text(debugHitResult, 20, 70);
-  }
-}
+var game = new Phaser.Game(800, 600, Phaser.auto, 'toader');
+game.state.add('toader', toader);
+game.state.start('toader');
