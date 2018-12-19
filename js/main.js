@@ -65,6 +65,9 @@ var toader = {
     this.playerSpeed = 65;
     this.playerRespawning = false;
     this.playerRespawnTime = 1200;
+    this.powerPelletActive = false;
+    this.powerPelletsRange = [1000, 2500, 3800, 5500, 7500, 9000];
+    this.oneUpRange = [6000, 10000, 18000, 25000];
     this.enemyCount = 5;
     this.enemyPointsValue = 50;
     this.enemySpeed = 150;
@@ -102,59 +105,10 @@ var toader = {
       this.spawnEnemy(this.enemyTop[0], this.enemyTop[1], 'down');
     }, this);
   },
-  update: function () {
-    this.player.body.setZeroVelocity();
-
-    // if (this.points >= 1000) {
-    //   this.player.scale.set(2);
-    // }
-
-    if (!this.playerRespawning) {
-      if (this.cursors.left.isDown) {
-        // if (player.x > 300) { // player left bounds
-          this.player.play('left');
-          this.player.body.moveLeft(this.playerSpeed);
-          this.player.body.angle = -90;
-        // }
-      }
-      else if (this.cursors.right.isDown) {
-        // if (player.x < 500) { // player right bounds
-          this.player.play('right');
-          this.player.body.moveRight(this.playerSpeed);
-          this.player.body.angle = 90;
-        // }
-      }
-      else if (this.cursors.up.isDown) {
-        // if (player.y > 200) { // player upper bounds
-          this.player.play('up');
-          this.player.body.moveUp(this.playerSpeed);
-          this.player.body.angle = 0;
-        // }
-      }
-      else if (this.cursors.down.isDown) {
-        // if (player.y < 400) { // player lower bounds
-          this.player.play('down');
-          this.player.body.moveDown(this.playerSpeed);
-          this.player.body.angle = -180;
-        // }
-      }
-      else {
-        this.stopPlayerAnim()
-      }
-
-      //  Fire Weapon
-      if (this.fireButton.isDown) {
-        this.fireWeapon();
-      }
-    }
-    else {
-      this.stopPlayerAnim()
-    }
-  },
   createPlayer: function() {
     this.player = game.add.sprite(400, 300, 'player_anim');
     this.player.smoothed = false;
-    this.player.scale.set(this.scale);
+    // this.player.scale.set(this.scale);
 
     //  Enable player physics
     game.physics.p2.enable(this.player, this.debug);
@@ -171,7 +125,7 @@ var toader = {
     this.player.body.collideWorldBounds = true;
 
     //  Check for the block hitting another object
-    this.player.body.onBeginContact.add(this.updatePlayerStatus, this);
+    this.player.body.onBeginContact.add(this.playerCollides, this);
 
     //  Player animations
     this.player.animations.add('stand', [0], 1, true);
@@ -182,6 +136,63 @@ var toader = {
 
     this.playerLeft.enableUpdate = true;
     this.playerRight.enableUpdate = true;
+  },
+  playerController: function() {
+    if (this.cursors.left.isDown) {
+        this.player.play('left');
+        this.player.body.moveLeft(this.playerSpeed);
+        this.player.body.angle = -90;
+    }
+    else if (this.cursors.right.isDown) {
+        this.player.play('right');
+        this.player.body.moveRight(this.playerSpeed);
+        this.player.body.angle = 90;
+    }
+    else if (this.cursors.up.isDown) {
+        this.player.play('up');
+        this.player.body.moveUp(this.playerSpeed);
+        this.player.body.angle = 0;
+    }
+    else if (this.cursors.down.isDown) {
+        this.player.play('down');
+        this.player.body.moveDown(this.playerSpeed);
+        this.player.body.angle = -180;
+    }
+    else {
+      this.stopPlayerAnim()
+    }
+  },
+  playerCollides: function(body) {
+    if (body) {
+      if (body.sprite.key !== 'point_coin' && body.sprite.key !== 'power_pellet') {
+        if (this.lives > 1) {
+          this.lives -= 1;
+          this.playerRespawning = true;
+          this.player.kill();
+          this.respawnPlayer();
+        }
+        else {
+          this.player.kill();
+          this.gameover = true;
+          this.gameOverText = game.add.button(game.world.centerX, game.world.centerY, 'gameover', this.restartGame, this, 2, 1, 0);
+          this.gameOverText.anchor.x = 0.5;
+          this.gameOverText.anchor.y = 0.5;
+        }
+
+        // reset power up
+        this.powerPelletActive = false;
+
+        // Debug onBeginContact bodies
+        if (this.debug) {
+          if (body) {
+            this.debugHitResult = 'You last hit: ' + body.sprite.key;
+          }
+          else {
+            this.debugHitResult = 'You last hit: The wall :)';
+          }
+        }
+      }
+    }
   },
   createWeapon: function() {
     //  Weapon group
@@ -226,36 +237,48 @@ var toader = {
       e.body.fixedRotation = false;
       e.body.kinematic = true;
       e.body.collides(this.weaponCG, function() {
+        // destroy enemy
         e.kill();
+
         // explode on kill
         var explode = this.explosions.getFirstExists(false);
         explode.reset(e.body.x, e.body.y);
         explode.play('explosion', 30, false, true);
 
-        // leave a power pellet on colision
-        var point = this.point_coins.getFirstExists(false);
-        point.reset(e.body.x, e.body.y);
-        point.play('point_coin', 16, true);
+        if (this.powerPelletsRange.indexOf(this.points) > -1 && this.powerPelletActive !== true) {
+          // leave a power pellet
+          var power = this.power_pellets.getFirstExists(false);
+          power.reset(e.body.x, e.body.y);
+          power.play('power_pellet', 16, true);
+          game.time.events.add(Phaser.Timer.SECOND + 12000, function() {
+            power.kill();
+          });
+        }
+        else {
+          // leave a point coin
+          var point = this.point_coins.getFirstExists(false);
+          point.reset(e.body.x, e.body.y);
+          point.play('point_coin', 16, true);
+          game.time.events.add(Phaser.Timer.SECOND + 4000, function() {
+            point.kill();
+          });
+        }
 
-        game.time.events.add(Phaser.Timer.SECOND + 4000, function() {
-          point.kill();
-        });
       }, this);
     }, this);
 
-    //  Explosion group
+    //  Explosion pool
     this.explosions = game.add.group();
-    this.explosions.createMultiple(30, 'explosion');
+    this.explosions.createMultiple(20, 'explosion');
     this.explosions.setAll('anchor.x', 0.5);
     this.explosions.setAll('anchor.y', 0.5);
     this.explosions.forEach(function(e) {
       e.animations.add('explosion');
     });
 
-    // Power Pellets group
+    // Point Coin pool
     this.point_coins = game.add.group();
-    this.point_coins.createMultiple(100, 'point_coin');
-    this.point_coins.enableBody = false;
+    this.point_coins.createMultiple(20, 'point_coin');
     this.point_coins.physicsBodyType = Phaser.Physics.P2JS;
     game.physics.p2.enable(this.point_coins, this.debug);
     this.point_coins.setAll('anchor.x', 0.5);
@@ -271,6 +294,27 @@ var toader = {
       e.body.onBeginContact.add(function() {
         e.kill();
         this.points += this.enemyPointsValue;
+      }, this);
+    }, this);
+
+    // Power Pellet pool
+    this.power_pellets = game.add.group();
+    this.power_pellets.createMultiple(10, 'power_pellet');
+    this.power_pellets.physicsBodyType = Phaser.Physics.P2JS;
+    game.physics.p2.enable(this.power_pellets, this.debug);
+    this.power_pellets.setAll('anchor.x', 0.5);
+    this.power_pellets.setAll('anchor.y', 0.5);
+    this.power_pellets.forEach(function(e) {
+      e.body.setCircle(20);
+      e.body.setCollisionGroup(this.powerCG);
+      e.body.collides(this.playerCG);
+      // e.scale.set(scale);
+      e.body.data.shapes[0].sensor = true;
+      e.body.kinematic = false;
+      e.animations.add('power_pellet');
+      e.body.onBeginContact.add(function() {
+        e.kill();
+        this.powerPelletActive = true;
       }, this);
     }, this);
   },
@@ -369,36 +413,6 @@ var toader = {
       this.timeLabel.text = result;
     }
   },
-  updatePlayerStatus: function(body) {
-    if (body && body.sprite.key !== 'point_coin') {
-      if (this.gameover === true) {
-        this.player.kill();
-      }
-      else if (this.lives > 1) {
-        this.lives -= 1;
-        this.playerRespawning = true;
-        this.player.kill();
-        this.respawnPlayer();
-      }
-      else {
-        this.player.kill();
-        this.gameover = true;
-        this.gameOverText = game.add.button(game.world.centerX, game.world.centerY, 'gameover', this.restartGame, this, 2, 1, 0);
-        this.gameOverText.anchor.x = 0.5;
-        this.gameOverText.anchor.y = 0.5;
-      }
-
-      // Debug onBeginContact bodies
-      if (this.debug) {
-        if (body) {
-          this.debugHitResult = 'You last hit: ' + body.sprite.key;
-        }
-        else {
-          this.debugHitResult = 'You last hit: The wall :)';
-        }
-      }
-    }
-  },
   stopPlayerAnim: function() {
     if (!this.isOddFrameNum(this.player.animations.currentAnim.frame)) {
       this.player.animations.stop();
@@ -437,6 +451,24 @@ var toader = {
     this.points = 0;
     this.gameover = false;
     game.state.restart();
+  },
+  update: function () {
+    this.player.body.setZeroVelocity();
+
+    if (!this.playerRespawning) {
+      // Move Player
+      this.playerController();
+      //  Fire Weapon
+      if (this.fireButton.isDown) {
+        this.fireWeapon();
+      }
+      if (this.powerPelletActive) {
+        this.player.scale.set(2);
+      }
+    }
+    else {
+      this.stopPlayerAnim();
+    }
   },
   render: function() {
     //  Display Lives and Points
