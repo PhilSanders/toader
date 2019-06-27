@@ -66,9 +66,10 @@ var toader = {
     this.playerRespawning = false;
     this.playerRespawnTime = 1200;
     this.powerPelletActive = false;
+    this.powerPelletDropped = false;
     this.powerPelletsRange = [1000, 2500, 3800, 5500, 7500, 9000];
     this.oneUpRange = [6000, 10000, 18000, 25000];
-    this.enemyCount = 5;
+    this.enemyCount = 4;
     this.enemyPointsValue = 50;
     this.enemySpeed = 150;
     this.enemyLeft = [0, 350];
@@ -245,14 +246,16 @@ var toader = {
         explode.reset(e.body.x, e.body.y);
         explode.play('explosion', 30, false, true);
 
-        if (this.powerPelletsRange.indexOf(this.points) > -1 && this.powerPelletActive !== true) {
+        if (this.powerPelletDropped === false && this.powerPelletActive === false && this.powerPelletsRange.indexOf(this.points) > -1) {
           // leave a power pellet
           var power = this.power_pellets.getFirstExists(false);
+          this.powerPelletDropped = true;
           power.reset(e.body.x, e.body.y);
           power.play('power_pellet', 16, true);
           game.time.events.add(Phaser.Timer.SECOND + 12000, function() {
             power.kill();
-          });
+            this.powerPelletDropped = false;
+          }, this);
         }
         else {
           // leave a point coin
@@ -315,6 +318,7 @@ var toader = {
       e.body.onBeginContact.add(function() {
         e.kill();
         this.powerPelletActive = true;
+        this.powerPelletDropped = false;
       }, this);
     }, this);
   },
