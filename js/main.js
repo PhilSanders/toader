@@ -80,9 +80,9 @@ var toader = {
     this.debug = false;
     this.debugHitResult = '';
 
-    this.createPlayer();
-
     this.createEnemy();
+
+    this.createPlayer();
 
     this.createTimer();
 
