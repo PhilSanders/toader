@@ -116,9 +116,6 @@ var toader = {
 
     //  Setup player body
     this.player.body.setCircle(18);
-    this.player.body.setZeroDamping();
-    this.player.body.fixedRotation = false;
-    this.player.body.kinematic = false;
 
     //  Player collision group
     this.player.body.setCollisionGroup(this.playerCG);
