@@ -66,6 +66,7 @@ var toader = {
     this.playerSpeed = 65;
     this.playerRespawning = false;
     this.playerRespawnTime = 1200;
+    this.playerCollisionSize = 18;
     this.powerPelletActive = false;
     this.powerPelletDropped = false;
     this.powerPelletsRange = [1000, 2500, 3800, 5500, 7500, 9000];
@@ -116,7 +117,7 @@ var toader = {
     game.physics.p2.enable(this.player, this.debug);
 
     //  Setup player body
-    this.player.body.setCircle(18);
+    this.player.body.setCircle(this.playerCollisionSize);
 
     //  Player collision group
     this.player.body.setCollisionGroup(this.playerCG);
@@ -190,7 +191,7 @@ var toader = {
         this.powerPelletActive = false;
       } 
       else {
-        this.player.body.setCircle(36);
+        this.player.body.setCircle(this.playerCollisionSize * 2);
         this.player.body.setCollisionGroup(this.invincibleCG);
         this.player.body.collides([this.powerCG]);
       }
@@ -258,8 +259,8 @@ var toader = {
         explode.play('explosion', 30, false, true);
 
         if (
-          this.powerPelletDropped === false 
-          && this.powerPelletActive === false 
+          !this.powerPelletDropped 
+          && !this.powerPelletActive
           && this.powerPelletsRange.indexOf(this.points) > -1
         ) {
           // leave a power pellet
