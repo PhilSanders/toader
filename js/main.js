@@ -122,7 +122,10 @@ var toader = {
 
     //  Player collision group
     this.player.body.setCollisionGroup(this.playerCG);
-    this.player.body.collides([this.enemyCG, this.powerCG]);
+    this.player.body.collides([
+      this.enemyCG, 
+      this.powerCG
+    ]);
     this.player.body.collideWorldBounds = true;
 
     //  Check for the block hitting another object
@@ -246,7 +249,11 @@ var toader = {
         explode.reset(e.body.x, e.body.y);
         explode.play('explosion', 30, false, true);
 
-        if (this.powerPelletDropped === false && this.powerPelletActive === false && this.powerPelletsRange.indexOf(this.points) > -1) {
+        if (
+          this.powerPelletDropped === false 
+          && this.powerPelletActive === false 
+          && this.powerPelletsRange.indexOf(this.points) > -1
+        ) {
           // leave a power pellet
           var power = this.power_pellets.getFirstExists(false);
           this.powerPelletDropped = true;
@@ -350,7 +357,10 @@ var toader = {
     }
   },
   fireWeapon: function() {
-    if (!this.gameover && !this.playerRespawning && game.time.now > this.bulletTime) {
+    if (!this.gameover 
+      && !this.playerRespawning 
+      && game.time.now > this.bulletTime
+    ) {
       //  Grab a bullet from the pool
       var bullet = this.weapon.getFirstExists(false);
 
