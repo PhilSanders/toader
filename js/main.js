@@ -140,6 +140,8 @@ var toader = {
     this.playerRight.enableUpdate = true;
   },
   playerController: function() {
+    this.player.body.angularDamping = 1;
+
     if (this.cursors.left.isDown) {
         this.player.play('left');
         this.player.body.moveLeft(this.playerSpeed);
