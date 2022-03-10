@@ -168,32 +168,40 @@ var toader = {
   },
   playerCollides: function(body) {
     if (body) {
-      if (body.sprite.key !== 'point_coin' && body.sprite.key !== 'power_pellet') {
-        if (this.lives > 1) {
-          this.lives -= 1;
-          this.playerRespawning = true;
-          this.player.kill();
-          this.respawnPlayer();
-        }
-        else {
-          this.player.kill();
-          this.gameover = true;
-          this.gameOverText = game.add.button(game.world.centerX, game.world.centerY, 'gameover', this.restartGame, this, 2, 1, 0);
-          this.gameOverText.anchor.x = 0.5;
-          this.gameOverText.anchor.y = 0.5;
+      if (!this.powerPelletActive) {
+        if (body.sprite.key !== 'point_coin' && body.sprite.key !== 'power_pellet') {
+
+          if (this.lives > 1) {
+            this.lives -= 1;
+            this.playerRespawning = true;
+            this.player.kill();
+            this.respawnPlayer();
+          }
+          else {
+            this.player.kill();
+            this.gameover = true;
+            this.gameOverText = game.add.button(game.world.centerX, game.world.centerY, 'gameover', this.restartGame, this, 2, 1, 0);
+            this.gameOverText.anchor.x = 0.5;
+            this.gameOverText.anchor.y = 0.5;
+          }
         }
 
         // reset power up
         this.powerPelletActive = false;
+      } 
+      else {
+        this.player.body.setCircle(36);
+        this.player.body.setCollisionGroup(this.invincibleCG);
+        this.player.body.collides([this.powerCG]);
+      }
 
-        // Debug onBeginContact bodies
-        if (this.debug) {
-          if (body) {
-            this.debugHitResult = 'You last hit: ' + body.sprite.key;
-          }
-          else {
-            this.debugHitResult = 'You last hit: The wall :)';
-          }
+      // Debug onBeginContact bodies
+      if (this.debug) {
+        if (body) {
+          this.debugHitResult = 'You last hit: ' + body.sprite.key;
+        }
+        else {
+          this.debugHitResult = 'You last hit: The wall :)';
         }
       }
     }
@@ -240,7 +248,7 @@ var toader = {
       e.body.setCollisionGroup(this.enemyCG);
       e.body.fixedRotation = false;
       e.body.kinematic = true;
-      e.body.collides(this.weaponCG, function() {
+      e.body.collides([this.weaponCG, this.invincibleCG], function() {
         // destroy enemy
         e.kill();
 
@@ -296,7 +304,7 @@ var toader = {
     this.point_coins.forEach(function(e) {
       e.body.setCircle(14);
       e.body.setCollisionGroup(this.powerCG);
-      e.body.collides(this.playerCG);
+      e.body.collides([this.playerCG, this.invincibleCG]);
       // e.scale.set(scale);
       e.body.data.shapes[0].sensor = true;
       e.body.kinematic = false;
