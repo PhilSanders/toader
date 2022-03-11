@@ -192,9 +192,9 @@ var toader = {
         this.powerPelletActive = false;
       } 
       else {
-        this.player.body.setCircle(this.playerCollisionSize * 2);
-        this.player.body.setCollisionGroup(this.invincibleCG);
-        this.player.body.collides([this.powerCG]);
+        if (!this.powerTime) {
+          this.startPowerTime();
+        }
       }
 
       // Debug onBeginContact bodies
@@ -207,6 +207,19 @@ var toader = {
         }
       }
     }
+  },
+  startPowerTime: function() {
+    this.powerTime = true;
+    this.player.body.setCircle(this.playerCollisionSize * 2);
+    this.player.body.setCollisionGroup(this.invincibleCG);
+    game.time.events.add(Phaser.Timer.SECOND * 5, this.endPowerTime, this);
+  },
+  endPowerTime: function() {
+    this.player.scale.set(1);
+    this.player.body.setCircle(this.playerCollisionSize);
+    this.player.body.setCollisionGroup(this.playerCG);
+    this.powerPelletActive = false;
+    this.powerTime = false;
   },
   createWeapon: function() {
     //  Weapon group
@@ -259,9 +272,8 @@ var toader = {
         explode.reset(e.body.x, e.body.y);
         explode.play('explosion', 30, false, true);
 
-        if (
-          !this.powerPelletDropped 
-          && !this.powerPelletActive
+        if (!this.powerPelletDropped 
+          && !this.powerPelletActive 
           && this.powerPelletsRange.indexOf(this.points) > -1
         ) {
           // leave a power pellet
