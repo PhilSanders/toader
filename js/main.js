@@ -66,7 +66,7 @@ var toader = {
     this.gameTime = 0;
     this.playerSpeed = 65;
     this.playerRespawning = false;
-    this.playerRespawnTime = 1200;
+    this.playerRespawnTime = 500;
     this.playerCollisionSize = 18;
     this.powerPelletActive = false;
     this.powerPelletDropped = false;
@@ -447,20 +447,20 @@ var toader = {
   },
   respawnPlayer: function() {
     if (this.playerRespawning) {
-      game.time.events.add(this.playerRespawnTime / 4, function() {
+      game.time.events.add(this.playerRespawnTime, function() {
         // player.reset(player.x, player.y); // respawn in place
         this.player.reset(game.world.centerX, game.world.centerY); // respawn centered
         this.player.body.angle = 0;
         this.player.alpha = 0.4;
         this.player.scale.set(1);
 
-        game.time.events.add(this.playerRespawnTime / 4, function() {
+        game.time.events.add(this.playerRespawnTime, function() {
           this.player.alpha = 0.6;
 
-          game.time.events.add(this.playerRespawnTime / 4, function() {
+          game.time.events.add(this.playerRespawnTime, function() {
             this.player.alpha = 0.8;
 
-            game.time.events.add(this.playerRespawnTime / 4, function() {
+            game.time.events.add(this.playerRespawnTime, function() {
               this.player.alpha = 1;
               this.playerRespawning = false;
 
