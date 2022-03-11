@@ -50,6 +50,7 @@ var toader = {
     this.enemyCG = game.physics.p2.createCollisionGroup();
     this.powerCG = game.physics.p2.createCollisionGroup();
     this.invincibleCG = game.physics.p2.createCollisionGroup();
+    this.respawnCG = game.physics.p2.createCollisionGroup();
 
     //  Collide with bounds
     game.physics.p2.updateBoundsCollisionGroup();
