@@ -480,19 +480,14 @@ var toader = {
   update: function () {
     this.player.body.setZeroVelocity();
 
-    if (!this.playerRespawning) {
-      // Move Player
-      this.playerController();
-      //  Fire Weapon
-      if (this.fireButton.isDown) {
-        this.fireWeapon();
-      }
-      if (this.powerPelletActive) {
-        this.player.scale.set(2);
-      }
+    // Move Player
+    this.playerController();
+    //  Fire Weapon
+    if (this.fireButton.isDown) {
+      this.fireWeapon();
     }
-    else {
-      this.stopPlayerAnim();
+    if (this.powerPelletActive) {
+      this.player.scale.set(2);
     }
   },
   render: function() {
