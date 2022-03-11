@@ -84,9 +84,7 @@ var toader = {
     this.debugHitResult = '';
 
     this.createEnemy();
-
     this.createPlayer();
-
     this.createTimer();
 
     this.gameTimer = game.time.events.loop(100, function(){
@@ -172,24 +170,13 @@ var toader = {
     if (body) {
       if (!this.powerPelletActive) {
         if (body.sprite.key !== 'point_coin' && body.sprite.key !== 'power_pellet') {
-
           if (this.lives > 1) {
-            this.lives -= 1;
-            this.playerRespawning = true;
-            this.player.kill();
-            this.respawnPlayer();
+            this.youDied();
           }
           else {
-            this.player.kill();
-            this.gameover = true;
-            this.gameOverText = game.add.button(game.world.centerX, game.world.centerY, 'gameover', this.restartGame, this, 2, 1, 0);
-            this.gameOverText.anchor.x = 0.5;
-            this.gameOverText.anchor.y = 0.5;
+            this.gameOver();
           }
         }
-
-        // reset power up
-        this.powerPelletActive = false;
       } 
       else {
         if (!this.powerTime) {
@@ -207,6 +194,21 @@ var toader = {
         }
       }
     }
+  },
+  youDied: function() { // Darksouls homeage
+    this.lives -= 1;
+    this.powerPelletActive = false;
+    this.player.kill();
+    this.playerRespawning = true;
+    this.respawnPlayer();
+  },
+  gameOver: function() {
+    this.lives = 0;
+    this.player.kill();
+    this.gameover = true;
+    this.gameOverText = game.add.button(game.world.centerX, game.world.centerY, 'gameover', this.restartGame, this, 2, 1, 0);
+    this.gameOverText.anchor.x = 0.5;
+    this.gameOverText.anchor.y = 0.5;
   },
   startPowerTime: function() {
     this.powerTime = true;
