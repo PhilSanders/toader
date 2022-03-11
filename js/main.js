@@ -453,6 +453,7 @@ var toader = {
         this.player.body.angle = 0;
         this.player.alpha = 0.4;
         this.player.scale.set(1);
+        this.player.body.setCollisionGroup(this.respawnCG);
 
         game.time.events.add(this.playerRespawnTime, function() {
           this.player.alpha = 0.6;
@@ -463,7 +464,7 @@ var toader = {
             game.time.events.add(this.playerRespawnTime, function() {
               this.player.alpha = 1;
               this.playerRespawning = false;
-
+              this.player.body.setCollisionGroup(this.playerCG);
             }, this).autoDestroy = true;
           }, this).autoDestroy = true;
         }, this).autoDestroy = true;
